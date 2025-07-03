@@ -1,0 +1,9 @@
+{
+  "name": "Scenery",
+  "author": "steve@corbett.ca",
+  "version": "2.7.0",
+  "targetAppName": "MusicPlayer",
+  "targetAppVersion": "2.7",
+  "shortDescription": "Gently scrolling scenery",
+  "longDescription": "Gently scrolling scenery with programmable avatars to provide commentary."
+}
