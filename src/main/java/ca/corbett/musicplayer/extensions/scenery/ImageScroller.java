@@ -120,6 +120,10 @@ public class ImageScroller {
         scaleCalculationsDone = false;
     }
 
+    public void stop() {
+        image.flush();
+    }
+
     /**
      * Renders a single frame of animation and handles scrolling the image by an appropriate amount.
      */

@@ -3,7 +3,9 @@ package ca.corbett.musicplayer.extensions.scenery;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
+import ca.corbett.musicplayer.ui.VisualizationManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -35,5 +37,10 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public void onDeactivate() {
+    }
+
+    @Override
+    public List<VisualizationManager.Visualizer> getCustomVisualizers() {
+        return List.of(new SceneryVisualizer());
     }
 }
