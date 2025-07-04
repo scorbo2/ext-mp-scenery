@@ -3,6 +3,7 @@ package ca.corbett.musicplayer.extensions.scenery;
 import ca.corbett.musicplayer.ui.VisualizationManager;
 import ca.corbett.musicplayer.ui.VisualizationTrackInfo;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class SceneryVisualizer extends VisualizationManager.Visualizer {
@@ -28,6 +29,10 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
 
     @Override
     public void renderFrame(Graphics2D g, VisualizationTrackInfo trackInfo) {
+        // TODO remove this, ideally the scenery render should make this obsolete:
+        g.setColor(Color.BLACK);
+        g.fillRect(0,0,displayWidth, displayHeight);
+
         // Render background scenery image
         //imageScroller.renderFrame(g);
 

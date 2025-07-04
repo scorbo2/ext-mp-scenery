@@ -28,10 +28,16 @@ public class AnimatedTextRenderer {
     private long lastUpdateTime;
     private double charAccumulator; // For smooth fractional character progression
 
+    // Cursor state
+    private boolean showCursor;
+    private double cursorBlinkRate; // Blinks per second
+    private double cursorAccumulator;
+
     // Styling
     private Font font;
     private Color textColor;
     private Color backgroundColor;
+    private Color cursorColor;
 
     // Layout
     private int padding;
@@ -54,12 +60,16 @@ public class AnimatedTextRenderer {
         this.font = font;
         this.textColor = textColor;
         this.backgroundColor = backgroundColor;
+        this.cursorColor = textColor; // Default cursor color same as text
+        this.cursorBlinkRate = 0.0; // Eh, I'm not wild about the blinking... 2.0; // 2 blinks per second
         this.padding = 10;
         this.needsReflow = true;
 
         // Initialize animation state
         this.currentCharIndex = 0;
         this.charAccumulator = 0.0;
+        this.showCursor = true;
+        this.cursorAccumulator = 0.0;
         this.lastUpdateTime = System.currentTimeMillis();
 
         // Set up graphics context
@@ -105,11 +115,18 @@ public class AnimatedTextRenderer {
         // Update character accumulator
         charAccumulator += charsPerSecond * deltaTime;
 
-        // Check if we need to reveal more characters
+        // Update cursor blink (only if animation is not complete)
+        boolean animationComplete = currentCharIndex >= totalChars;
+        if (!animationComplete) {
+            cursorAccumulator += cursorBlinkRate * deltaTime;
+            showCursor = ((int)cursorAccumulator) % 2 == 0; // Toggle cursor visibility
+        }
+
+        // Check if we need to reveal more characters or update cursor
         int newCharIndex = Math.min((int)charAccumulator, totalChars);
 
-        if (newCharIndex > currentCharIndex) {
-            // Render new characters
+        if (newCharIndex > currentCharIndex || !animationComplete) {
+            // Render new characters and/or cursor
             renderUpToCharacter(newCharIndex);
             currentCharIndex = newCharIndex;
         }
@@ -133,6 +150,8 @@ public class AnimatedTextRenderer {
         clearBuffer();
         this.currentCharIndex = 0;
         this.charAccumulator = 0.0;
+        this.cursorAccumulator = 0.0;
+        this.showCursor = true;
     }
 
     /**
@@ -151,9 +170,14 @@ public class AnimatedTextRenderer {
         int y = padding + fm.getAscent();
 
         int charsProcessed = 0;
+        CursorPosition cursorPos = null;
 
         for (String line : wrappedLines) {
             if (charsProcessed >= charIndex) {
+                // We've reached the end of revealed text, cursor goes here
+                if (cursorPos == null && charsProcessed < totalChars) {
+                    cursorPos = new CursorPosition(padding, y, lineHeight);
+                }
                 break;
             }
 
@@ -162,8 +186,13 @@ public class AnimatedTextRenderer {
             String textToDraw = line.substring(0, charsToDrawFromLine);
 
             // Draw the text
-            System.out.println("drawString("+textToDraw+")");
             bufferGraphics.drawString(textToDraw, padding, y);
+
+            // Check if cursor should be positioned at end of this partial line
+            if (charsProcessed + charsToDrawFromLine == charIndex && charIndex < totalChars) {
+                int textWidth = fm.stringWidth(textToDraw);
+                cursorPos = new CursorPosition(padding + textWidth, y, lineHeight);
+            }
 
             charsProcessed += line.length();
             y += lineHeight;
@@ -172,6 +201,43 @@ public class AnimatedTextRenderer {
             if (y > buffer.getHeight() - padding) {
                 break;
             }
+        }
+
+        // Draw cursor if animation is not complete and cursor should be visible
+        if (cursorPos != null && showCursor && charIndex < totalChars) {
+            drawCursor(cursorPos);
+        }
+    }
+
+    /**
+     * Draws the block cursor at the specified position
+     */
+    private void drawCursor(CursorPosition pos) {
+        FontMetrics fm = bufferGraphics.getFontMetrics();
+        int cursorWidth = fm.charWidth('M'); // Use 'M' width for cursor size
+        int cursorHeight = fm.getHeight();
+
+        // Save current color
+        Color originalColor = bufferGraphics.getColor();
+
+        // Draw cursor background
+        bufferGraphics.setColor(cursorColor);
+        bufferGraphics.fillRect(pos.x, pos.y - fm.getAscent(), cursorWidth, cursorHeight);
+
+        // Restore original color
+        bufferGraphics.setColor(originalColor);
+    }
+
+    /**
+     * Helper class to store cursor position
+     */
+    private static class CursorPosition {
+        final int x, y, lineHeight;
+
+        CursorPosition(int x, int y, int lineHeight) {
+            this.x = x;
+            this.y = y;
+            this.lineHeight = lineHeight;
         }
     }
 
@@ -248,10 +314,29 @@ public class AnimatedTextRenderer {
      */
     public void setTextColor(Color textColor) {
         this.textColor = textColor;
+        this.cursorColor = textColor; // Update cursor color to match
         // Re-render current text with new color
         if (currentCharIndex > 0) {
             renderUpToCharacter(currentCharIndex);
         }
+    }
+
+    /**
+     * Sets cursor color independently of text color
+     */
+    public void setCursorColor(Color cursorColor) {
+        this.cursorColor = cursorColor;
+        // Re-render if cursor might be visible
+        if (currentCharIndex < totalChars) {
+            renderUpToCharacter(currentCharIndex);
+        }
+    }
+
+    /**
+     * Sets cursor blink rate (blinks per second)
+     */
+    public void setCursorBlinkRate(double blinksPerSecond) {
+        this.cursorBlinkRate = blinksPerSecond;
     }
 
     /**
@@ -297,6 +382,8 @@ public class AnimatedTextRenderer {
     public void resetAnimation() {
         this.currentCharIndex = 0;
         this.charAccumulator = 0.0;
+        this.cursorAccumulator = 0.0;
+        this.showCursor = true;
         this.lastUpdateTime = System.currentTimeMillis();
         clearBuffer();
     }
