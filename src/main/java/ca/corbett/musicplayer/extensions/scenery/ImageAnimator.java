@@ -109,18 +109,25 @@ public class ImageAnimator {
         // Calculate movement for this frame
         double frameDistance = maxSpeed * speedMultiplier * deltaTime;
 
-        // Calculate new position
-        double newX = currentX + directionX * frameDistance;
-        double newY = currentY + directionY * frameDistance;
-
-        // Check if we've reached or passed the destination
+        // Guarantee minimum movement of 1 pixel per frame (when not at destination)
         double remainingDistance = Math.sqrt(
             (destX - currentX) * (destX - currentX) +
                 (destY - currentY) * (destY - currentY)
         );
 
-        if (frameDistance >= remainingDistance) {
-            // We've reached the destination
+        if (remainingDistance > 0) {
+            // Ensure we move at least 1 pixel per frame, but not more than remaining distance
+            frameDistance = Math.max(frameDistance, 1.0);
+            frameDistance = Math.min(frameDistance, remainingDistance);
+        }
+
+        // Calculate new position
+        double newX = currentX + directionX * frameDistance;
+        double newY = currentY + directionY * frameDistance;
+
+        // Check if we've reached the destination
+        if (frameDistance >= remainingDistance || remainingDistance <= 0.5) {
+            // We've reached the destination (within half a pixel)
             currentX = destX;
             currentY = destY;
             movementComplete = true;
