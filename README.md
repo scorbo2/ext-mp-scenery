@@ -10,3 +10,6 @@ General idea:
 4. Avatar text messages could be purely informational ("current track is XYZ by the artist ABC" or whatever), OR could be configurable based on the scenery image.
 
 TODO: all of this in progress!
+
+TODO: package up a couple of example avatars and some sample scenery. 
+      But the main idea is that the user can provide their own (via extension config)
