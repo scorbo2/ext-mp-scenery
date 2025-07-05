@@ -11,6 +11,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
     public static final String NAME = "Scenery";
     private ImageScroller imageScroller;
     private AnimatedTextRenderer textRenderer;
+    private ImageAnimator imageAnimator;
     private int displayWidth;
     private int displayHeight;
 
@@ -24,7 +25,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
         displayHeight = height;
 
         // TODO load image, create ImageScroller and text animator
-        textRenderer = new AnimatedTextRenderer(width - 200, 500, "Hello there! This is a test of the text animation code! Just ignore me for now, it will get a lot slicker soon!", 8);
+        textRenderer = new AnimatedTextRenderer(width - 200, 500, "Hello there! This is a test of the text animation code! Just ignore me for now, it will get a lot slicker soon!", 12);
+        imageAnimator = new ImageAnimator(SceneryExtension.scLogo, 0, 0, 800, 100, 240, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.05);
     }
 
     @Override
@@ -40,6 +42,10 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
 
         // TODO avatar text animation
         textRenderer.updateTextAnimation();
+
+        // TODO avatar movement:
+        imageAnimator.update();
+        imageAnimator.render(g);
 
         // Step 4: Render the animated text
         int leftEdge = 100; // 100px margin on either side
