@@ -1,5 +1,4 @@
 package ca.corbett.musicplayer.extensions.scenery;
-
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
@@ -10,6 +9,7 @@ public class ImageAnimator {
     private double currentX, currentY;
     private double maxSpeed;
     private double easingStrength;
+    private double easingZonePercentage; // Percentage of travel distance for easing zones
 
     private long lastUpdateTime;
     private boolean movementComplete;
@@ -31,7 +31,7 @@ public class ImageAnimator {
      */
     public ImageAnimator(BufferedImage image, double startX, double startY,
                          double destX, double destY, double maxSpeed) {
-        this(image, startX, startY, destX, destY, maxSpeed, 2.0, EasingType.EASE_IN_OUT);
+        this(image, startX, startY, destX, destY, maxSpeed, 2.0, EasingType.EASE_IN_OUT, 0.1);
     }
 
     /**
@@ -45,10 +45,11 @@ public class ImageAnimator {
      * @param maxSpeed Maximum movement speed in pixels per second
      * @param easingStrength Strength of easing effect (1.0 = linear, higher = more curved)
      * @param easingType Type of easing to apply
+     * @param easingZonePercentage Percentage of travel distance for easing zones (0.0 to 0.5)
      */
     public ImageAnimator(BufferedImage image, double startX, double startY,
                          double destX, double destY, double maxSpeed,
-                         double easingStrength, EasingType easingType) {
+                         double easingStrength, EasingType easingType, double easingZonePercentage) {
         this.image = image;
         this.startX = startX;
         this.startY = startY;
@@ -59,6 +60,7 @@ public class ImageAnimator {
         this.maxSpeed = maxSpeed;
         this.easingStrength = Math.max(1.0, easingStrength);
         this.easingType = easingType;
+        this.easingZonePercentage = Math.max(0.0, Math.min(0.5, easingZonePercentage));
 
         this.lastUpdateTime = System.nanoTime();
         this.movementComplete = false;
@@ -103,8 +105,8 @@ public class ImageAnimator {
         // Calculate progress (0.0 to 1.0)
         double progress = totalDistance > 0 ? currentDistanceFromStart / totalDistance : 1.0;
 
-        // Apply easing function to get speed multiplier
-        double speedMultiplier = calculateEasing(progress);
+        // Apply easing function with zones to get speed multiplier
+        double speedMultiplier = calculateEasingWithZones(progress);
 
         // Calculate movement for this frame
         double frameDistance = maxSpeed * speedMultiplier * deltaTime;
@@ -137,11 +139,49 @@ public class ImageAnimator {
         }
     }
 
-    private double calculateEasing(double progress) {
+    private double calculateEasingWithZones(double progress) {
         // Clamp progress to [0, 1]
         progress = Math.max(0.0, Math.min(1.0, progress));
 
-        switch (easingType) {
+        // If easing zone is 0, return full speed (instant acceleration)
+        if (easingZonePercentage == 0.0) {
+            return 1.0;
+        }
+
+        // Calculate zone boundaries
+        double accelerationZoneEnd = easingZonePercentage;
+        double decelerationZoneStart = 1.0 - easingZonePercentage;
+
+        if (progress <= accelerationZoneEnd) {
+            // In acceleration zone - ease from 0 to full speed
+            double zoneProgress = progress / easingZonePercentage;
+            return calculateEasing(zoneProgress, true, false); // ease-out for acceleration
+        } else if (progress >= decelerationZoneStart) {
+            // In deceleration zone - ease from full speed to 0
+            double zoneProgress = (progress - decelerationZoneStart) / easingZonePercentage;
+            return calculateEasing(1.0 - zoneProgress, false, true); // ease-in for deceleration
+        } else {
+            // In constant speed zone
+            return 1.0;
+        }
+    }
+
+    private double calculateEasing(double progress) {
+        return calculateEasing(progress, false, false);
+    }
+
+    private double calculateEasing(double progress, boolean forceEaseOut, boolean forceEaseIn) {
+        // Clamp progress to [0, 1]
+        progress = Math.max(0.0, Math.min(1.0, progress));
+
+        EasingType typeToUse = easingType;
+        if (forceEaseOut) {
+            typeToUse = EasingType.EASE_OUT;
+        } else if (forceEaseIn) {
+            typeToUse = EasingType.EASE_IN;
+        }
+
+        switch (typeToUse) {
             case LINEAR:
                 return 1.0;
 
@@ -261,5 +301,20 @@ public class ImageAnimator {
      */
     public void setEasingType(EasingType easingType) {
         this.easingType = easingType;
+    }
+
+    /**
+     * Updates the easing zone percentage.
+     * @param easingZonePercentage Percentage of travel distance for easing zones (0.0 to 0.5)
+     */
+    public void setEasingZonePercentage(double easingZonePercentage) {
+        this.easingZonePercentage = Math.max(0.0, Math.min(0.5, easingZonePercentage));
+    }
+
+    /**
+     * @return current easing zone percentage
+     */
+    public double getEasingZonePercentage() {
+        return easingZonePercentage;
     }
 }
