@@ -16,7 +16,7 @@ class CompanionTest {
 
     @BeforeEach
     void setUp() {
-        companion = new Companion("test", null, null, null);
+        companion = new Companion("test", "en", null, null, null);
     }
 
     @Test
@@ -160,7 +160,7 @@ class CompanionTest {
         List<String> responses = List.of("Response1");
         Map<Companion.CompanionTrigger, List<String>> triggerMap = new HashMap<>();
         triggerMap.put(trigger1, responses);
-        Companion companion1 = new Companion("Test1", null, null, triggerMap);
+        Companion companion1 = new Companion("Test1", "en", null, null, triggerMap);
 
         // WHEN we ask for a response:
         String actual = companion1.getResponse("Artist", "Track", List.of("tag2", "tag1")); // order shouldn't matter
@@ -190,7 +190,7 @@ class CompanionTest {
         List<String> responses = List.of("Response1", "Response2", "Response3", "Response4");
         Map<Companion.CompanionTrigger, List<String>> triggerMap = new HashMap<>();
         triggerMap.put(trigger1, responses);
-        Companion companion1 = new Companion("Test1", null, null, triggerMap);
+        Companion companion1 = new Companion("Test1", "en", null, null, triggerMap);
 
         // WHEN we ask for all responses:
         List<String> actual = companion1.getAllMatchingResponses("Artist", "Track", List.of("tag2", "tag1")); // order shouldn't matter

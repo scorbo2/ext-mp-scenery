@@ -63,12 +63,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Companion {
 
     private final String name;
+    private final String language;
     private final File metaFile;
     private final List<BufferedImage> images;
     private final Map<CompanionTrigger, List<String>> triggerMap;
 
-    protected Companion(String name, File metaFile, List<BufferedImage> images, Map<CompanionTrigger, List<String>> triggerMap) {
+    protected Companion(String name, String language, File metaFile, List<BufferedImage> images, Map<CompanionTrigger, List<String>> triggerMap) {
         this.name = name;
+        this.language = language;
         this.metaFile = metaFile;
         this.images = images;
         this.triggerMap = triggerMap == null ? new HashMap<>() : triggerMap;
@@ -98,6 +100,13 @@ public class Companion {
         String name = rootNode.get("name").asText();
         if (name == null || name.trim().isEmpty()) {
             throw new IOException("Companion name cannot be empty");
+        }
+        String language = "en";
+        if (rootNode.has("language")) {
+            language = rootNode.get("language").asText();
+        }
+        if (language == null || language.trim().isEmpty()) {
+            throw new IOException("Companion must specify a language");
         }
 
         // Verify one or more jpg/png images starting with the base file name exist and are readable
@@ -138,7 +147,7 @@ public class Companion {
             throw new IOException("Companions must specify at least one trigger.");
         }
 
-        return new Companion(name, metaFile, images, triggerMap);
+        return new Companion(name, language, metaFile, images, triggerMap);
     }
 
     public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
@@ -300,6 +309,7 @@ public class Companion {
     }
 
     public String getName() { return name; }
+    public String getLanguage() { return language; }
     public List<BufferedImage> getImages() { return new ArrayList<>(images); }
 
     public static class CompanionTrigger {
