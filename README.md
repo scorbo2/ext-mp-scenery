@@ -14,3 +14,7 @@ TODO: all of this in progress!
 
 TODO: package up a couple of example companions and some sample scenery. 
       But the main idea is that the user can provide their own (via extension config)
+
+## Requirements
+
+MusicPlayer 2.8 or higher.
