@@ -17,13 +17,13 @@ public class Companion {
 
     private final String name;
     private final File metaFile;
-    private final BufferedImage image;
+    private final List<BufferedImage> images;
     private final Map<CompanionTrigger, List<String>> triggerMap;
 
-    protected Companion(String name, File metaFile, BufferedImage image, Map<CompanionTrigger, List<String>> triggerMap) {
+    protected Companion(String name, File metaFile, List<BufferedImage> images, Map<CompanionTrigger, List<String>> triggerMap) {
         this.name = name;
         this.metaFile = metaFile;
-        this.image = image;
+        this.images = images;
         this.triggerMap = triggerMap == null ? new HashMap<>() : triggerMap;
     }
 
@@ -53,23 +53,26 @@ public class Companion {
             throw new IOException("Companion name cannot be empty");
         }
 
-        // 2) Verify a jpg or png image with the same base file name exists and is readable
+        // 2) Verify one or more jpg/png images starting with the base file name exist and are readable
         String baseName = getBaseFileName(metaFile);
         String parentDir = metaFile.getParent();
-        File imageFile = findImageFile(parentDir, baseName);
-        if (imageFile == null) {
-            throw new IOException("No corresponding image file (jpg/png) found for: " + baseName);
+        List<File> imageFiles = findImageFiles(parentDir, baseName);
+        if (imageFiles.isEmpty()) {
+            throw new IOException("No corresponding image files (jpg/png) found starting with: " + baseName);
         }
 
-        // 4) Load the associated image file
-        BufferedImage image;
-        try {
-            image = ImageIO.read(imageFile);
-            if (image == null) {
-                throw new IOException("Failed to load image file: " + imageFile.getPath());
+        // 4) Load all associated image files
+        List<BufferedImage> images = new ArrayList<>();
+        for (File imageFile : imageFiles) {
+            try {
+                BufferedImage image = ImageIO.read(imageFile);
+                if (image == null) {
+                    throw new IOException("Failed to load image file: " + imageFile.getPath());
+                }
+                images.add(image);
+            } catch (Exception e) {
+                throw new IOException("Error reading image file: " + imageFile.getPath(), e);
             }
-        } catch (Exception e) {
-            throw new IOException("Error reading image file: " + imageFile.getPath(), e);
         }
 
         // Parse triggers
@@ -80,15 +83,12 @@ public class Companion {
                 for (JsonNode triggerNode : triggersNode) {
                     CompanionTrigger trigger = parseTrigger(triggerNode);
                     List<String> responses = parseResponses(triggerNode);
-                    if (responses.isEmpty()) {
-                        throw new IOException("Triggers must specify at least one response.");
-                    }
                     triggerMap.put(trigger, responses);
                 }
             }
         }
 
-        return new Companion(name, metaFile, image, triggerMap);
+        return new Companion(name, metaFile, images, triggerMap);
     }
 
     public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
@@ -130,15 +130,38 @@ public class Companion {
         return lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
     }
 
-    private static File findImageFile(String parentDir, String baseName) {
+    private static List<File> findImageFiles(String parentDir, String baseName) {
+        List<File> imageFiles = new ArrayList<>();
+        File directory = new File(parentDir);
+
+        if (!directory.exists() || !directory.isDirectory()) {
+            return imageFiles;
+        }
+
         String[] extensions = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"};
-        for (String ext : extensions) {
-            File imageFile = new File(parentDir, baseName + ext);
-            if (imageFile.exists() && imageFile.isFile()) {
-                return imageFile;
+        File[] files = directory.listFiles();
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    String fileName = file.getName();
+                    String fileBaseName = getBaseFileName(file);
+
+                    // Check if this file starts with our base name
+                    if (fileBaseName.startsWith(baseName)) {
+                        // Check if it has a valid image extension
+                        for (String ext : extensions) {
+                            if (fileName.toLowerCase().endsWith(ext.toLowerCase())) {
+                                imageFiles.add(file);
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
-        return null;
+
+        return imageFiles;
     }
 
     private static CompanionTrigger parseTrigger(JsonNode triggerNode) throws IOException {
@@ -165,21 +188,30 @@ public class Companion {
         return new CompanionTrigger(artistName, trackTitle, sceneryTags);
     }
 
-    private static List<String> parseResponses(JsonNode triggerNode) {
+    private static List<String> parseResponses(JsonNode triggerNode) throws IOException {
         List<String> responses = new ArrayList<>();
         if (triggerNode.has("responses")) {
             JsonNode responsesNode = triggerNode.get("responses");
             if (responsesNode.isArray()) {
                 for (JsonNode responseNode : responsesNode) {
-                    responses.add(responseNode.asText());
+                    String response = responseNode.asText();
+                    if (response != null && !response.trim().isEmpty()) {
+                        responses.add(response);
+                    }
                 }
             }
         }
+
+        // Validate that we have at least one non-empty response
+        if (responses.isEmpty()) {
+            throw new IOException("Each CompanionTrigger must have at least one non-empty response");
+        }
+
         return responses;
     }
 
     public String getName() { return name; }
-    public BufferedImage getImage() { return image; }
+    public List<BufferedImage> getImages() { return new ArrayList<>(images); }
 
     public static class CompanionTrigger {
         private final String artistName;
