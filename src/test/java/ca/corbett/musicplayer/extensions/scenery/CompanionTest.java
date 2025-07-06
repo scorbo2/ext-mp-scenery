@@ -140,7 +140,7 @@ class CompanionTest {
     }
 
     @Test
-    void testGetResponseWithNoMatchingTrigger_shouldReturnNull() {
+    void testGetResponse_withNoMatchingTrigger_shouldReturnNull() {
         // GIVEN a search where nothing matches:
         String artist = "Artist";
         String track = "Track";
@@ -154,7 +154,7 @@ class CompanionTest {
     }
 
     @Test
-    void testGetResponseWithMatch_shouldReturnResponse() {
+    void testGetResponse_withMatch_shouldReturnResponse() {
         // GIVEN a search where our trigger matches:
         Companion.CompanionTrigger trigger1 = new Companion.CompanionTrigger("Artist", "Track", List.of("tag1", "tag2"));
         List<String> responses = List.of("Response1");
@@ -167,5 +167,36 @@ class CompanionTest {
 
         // THEN we should get it:
         assertEquals("Response1", actual);
+    }
+
+    @Test
+    void testGetAllMatchingResponses_withNoMatches_shouldReturnNothing() {
+        // GIVEN a search where nothing matches:
+        String artist = "Artist";
+        String track = "Track";
+        List<String> tags = List.of("tag1", "tag2");
+
+        // WHEN we ask for a response:
+        List<String> actual = companion.getAllMatchingResponses(artist, track, tags);
+
+        // THEN we should get an empty list:
+        assertEquals(0, actual.size());
+    }
+
+    @Test
+    void testGetAllMatchingResponses_withMatches_shouldReturnEverything() {
+        // GIVEN a search where our trigger matches:
+        Companion.CompanionTrigger trigger1 = new Companion.CompanionTrigger("Artist", "Track", List.of("tag1", "tag2"));
+        List<String> responses = List.of("Response1", "Response2", "Response3", "Response4");
+        Map<Companion.CompanionTrigger, List<String>> triggerMap = new HashMap<>();
+        triggerMap.put(trigger1, responses);
+        Companion companion1 = new Companion("Test1", null, null, triggerMap);
+
+        // WHEN we ask for all responses:
+        List<String> actual = companion1.getAllMatchingResponses("Artist", "Track", List.of("tag2", "tag1")); // order shouldn't matter
+
+        // THEN we should get them all back:
+        assertEquals(4, actual.size());
+        assertTrue(actual.containsAll(responses));
     }
 }

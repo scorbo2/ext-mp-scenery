@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import javax.imageio.ImageIO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,9 +101,17 @@ public class Companion {
         return false;
     }
 
+    /**
+     * Returns a random response from triggers that match the given parameters.
+     * If multiple triggers match, one is selected randomly. If the selected trigger
+     * has multiple responses, one is selected randomly from those.
+     *
+     * @param artistName the artist name to match against (can be null)
+     * @param trackTitle the track title to match against (can be null)
+     * @param sceneryTags the scenery tags to match against (can be null)
+     * @return a random response string, or null if no triggers match
+     */
     public String getResponse(String artistName, String trackTitle, List<String> sceneryTags) {
-        Random rand = new Random(System.currentTimeMillis());
-
         // Find all triggers that match these parameters:
         List<CompanionTrigger> matchingTriggers = new ArrayList<>();
         for (CompanionTrigger candidateTrigger : triggerMap.keySet()) {
@@ -116,12 +125,43 @@ public class Companion {
             return null;
         }
 
-        // Pick one at random and get its list of possible responses:
+        // Apparently ThreadLocalRandom has better performance than java.util.Random
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+
+        // Pick one matching trigger at random and get its list of possible responses:
         CompanionTrigger trigger = matchingTriggers.get(rand.nextInt(matchingTriggers.size()));
         List<String> responses = triggerMap.get(trigger);
+        if (responses == null || responses.isEmpty()) {
+            return null;
+        }
 
         // Pick a response at random and return it:
         return responses.get(rand.nextInt(responses.size()));
+    }
+
+    /**
+     * Returns all responses from triggers that match the given parameters.
+     * If you just want one at random, use getResponse() instead.
+     * This is mainly here for testing purposes.
+     *
+     * @param artistName the artist name to match against (can be null)
+     * @param trackTitle the track title to match against (can be null)
+     * @param sceneryTags the scenery tags to match against (can be null)
+     * @return a list of all possible responses (may be empty if no triggers match)
+     */
+    public List<String> getAllMatchingResponses(String artistName, String trackTitle, List<String> sceneryTags) {
+        List<String> allResponses = new ArrayList<>();
+
+        for (CompanionTrigger candidateTrigger : triggerMap.keySet()) {
+            if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
+                List<String> responses = triggerMap.get(candidateTrigger);
+                if (responses != null) {
+                    allResponses.addAll(responses);
+                }
+            }
+        }
+
+        return allResponses;
     }
 
     private static String getBaseFileName(File file) {
