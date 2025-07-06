@@ -1,0 +1,282 @@
+package ca.corbett.musicplayer.extensions.scenery;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import javax.imageio.ImageIO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public class Companion {
+
+    private final String name;
+    private final File metaFile;
+    private final BufferedImage image;
+    private final Map<CompanionTrigger, List<String>> triggerMap;
+
+    protected Companion(String name, File metaFile, BufferedImage image, Map<CompanionTrigger, List<String>> triggerMap) {
+        this.name = name;
+        this.metaFile = metaFile;
+        this.image = image;
+        this.triggerMap = triggerMap == null ? new HashMap<>() : triggerMap;
+    }
+
+    /**
+     * Populate and return a new Companion instance using data from the given file.
+     */
+    public static Companion loadCompanion(File metaFile) throws IOException {
+        // 1) Verify the given json file exists and is well-formed
+        if (!metaFile.exists() || !metaFile.isFile()) {
+            throw new IOException("Meta file does not exist or is not a file: " + metaFile.getPath());
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode;
+        try {
+            rootNode = mapper.readTree(metaFile);
+        } catch (Exception e) {
+            throw new IOException("Failed to parse JSON file: " + metaFile.getPath(), e);
+        }
+
+        // 3) Parse the json metaFile and extract Companion information
+        if (!rootNode.has("name")) {
+            throw new IOException("Meta file must specify a 'name' field");
+        }
+        String name = rootNode.get("name").asText();
+        if (name == null || name.trim().isEmpty()) {
+            throw new IOException("Companion name cannot be empty");
+        }
+
+        // 2) Verify a jpg or png image with the same base file name exists and is readable
+        String baseName = getBaseFileName(metaFile);
+        String parentDir = metaFile.getParent();
+        File imageFile = findImageFile(parentDir, baseName);
+        if (imageFile == null) {
+            throw new IOException("No corresponding image file (jpg/png) found for: " + baseName);
+        }
+
+        // 4) Load the associated image file
+        BufferedImage image;
+        try {
+            image = ImageIO.read(imageFile);
+            if (image == null) {
+                throw new IOException("Failed to load image file: " + imageFile.getPath());
+            }
+        } catch (Exception e) {
+            throw new IOException("Error reading image file: " + imageFile.getPath(), e);
+        }
+
+        // Parse triggers
+        Map<CompanionTrigger, List<String>> triggerMap = new HashMap<>();
+        if (rootNode.has("triggers")) {
+            JsonNode triggersNode = rootNode.get("triggers");
+            if (triggersNode.isArray()) {
+                for (JsonNode triggerNode : triggersNode) {
+                    CompanionTrigger trigger = parseTrigger(triggerNode);
+                    List<String> responses = parseResponses(triggerNode);
+                    if (responses.isEmpty()) {
+                        throw new IOException("Triggers must specify at least one response.");
+                    }
+                    triggerMap.put(trigger, responses);
+                }
+            }
+        }
+
+        return new Companion(name, metaFile, image, triggerMap);
+    }
+
+    public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
+        for (CompanionTrigger trigger : triggerMap.keySet()) {
+            if (trigger.matches(artistName, trackTitle, sceneryTags)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getResponse(String artistName, String trackTitle, List<String> sceneryTags) {
+        Random rand = new Random(System.currentTimeMillis());
+
+        // Find all triggers that match these parameters:
+        List<CompanionTrigger> matchingTriggers = new ArrayList<>();
+        for (CompanionTrigger candidateTrigger : triggerMap.keySet()) {
+            if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
+                matchingTriggers.add(candidateTrigger);
+            }
+        }
+
+        // If none of our triggers matches, we have no response:
+        if (matchingTriggers.isEmpty()) {
+            return null;
+        }
+
+        // Pick one at random and get its list of possible responses:
+        CompanionTrigger trigger = matchingTriggers.get(rand.nextInt(matchingTriggers.size()));
+        List<String> responses = triggerMap.get(trigger);
+
+        // Pick a response at random and return it:
+        return responses.get(rand.nextInt(responses.size()));
+    }
+
+    private static String getBaseFileName(File file) {
+        String fileName = file.getName();
+        int lastDotIndex = fileName.lastIndexOf('.');
+        return lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    }
+
+    private static File findImageFile(String parentDir, String baseName) {
+        String[] extensions = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"};
+        for (String ext : extensions) {
+            File imageFile = new File(parentDir, baseName + ext);
+            if (imageFile.exists() && imageFile.isFile()) {
+                return imageFile;
+            }
+        }
+        return null;
+    }
+
+    private static CompanionTrigger parseTrigger(JsonNode triggerNode) throws IOException {
+        String artistName = triggerNode.has("artist") ? triggerNode.get("artist").asText() : null;
+        String trackTitle = triggerNode.has("track") ? triggerNode.get("track").asText() : null;
+
+        List<String> sceneryTags = new ArrayList<>();
+        if (triggerNode.has("scenery")) {
+            JsonNode sceneryNode = triggerNode.get("scenery");
+            if (sceneryNode.isArray()) {
+                for (JsonNode tagNode : sceneryNode) {
+                    sceneryTags.add(tagNode.asText());
+                }
+            }
+        }
+
+        // Validate that at least one field is specified
+        if ((artistName == null || artistName.trim().isEmpty()) &&
+            (trackTitle == null || trackTitle.trim().isEmpty()) &&
+            sceneryTags.isEmpty()) {
+            throw new IOException("CompanionTrigger must specify at least one of: artist, track, or scenery tags");
+        }
+
+        return new CompanionTrigger(artistName, trackTitle, sceneryTags);
+    }
+
+    private static List<String> parseResponses(JsonNode triggerNode) {
+        List<String> responses = new ArrayList<>();
+        if (triggerNode.has("responses")) {
+            JsonNode responsesNode = triggerNode.get("responses");
+            if (responsesNode.isArray()) {
+                for (JsonNode responseNode : responsesNode) {
+                    responses.add(responseNode.asText());
+                }
+            }
+        }
+        return responses;
+    }
+
+    public String getName() { return name; }
+    public BufferedImage getImage() { return image; }
+
+    public static class CompanionTrigger {
+        private final String artistName;
+        private final String trackTitle;
+        private final List<String> sceneryTags;
+
+        public CompanionTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
+            this.artistName = artistName;
+            this.trackTitle = trackTitle;
+            this.sceneryTags = convertListToLowerCase(sceneryTags);
+        }
+
+        public boolean hasArtistName() {
+            return artistName != null && !artistName.isBlank();
+        }
+
+        public String getArtistName() {
+            return artistName;
+        }
+
+        public boolean hasTrackTitle() {
+            return trackTitle != null && !trackTitle.isBlank();
+        }
+
+        public String getTrackTitle() {
+            return trackTitle;
+        }
+
+        public boolean hasSceneryTags() {
+            return !sceneryTags.isEmpty();
+        }
+
+        public List<String> getSceneryTags() {
+            return new ArrayList<>(sceneryTags);
+        }
+
+        /**
+         * Fixed version: Returns true if this trigger matches the given parameters.
+         * A trigger matches if ALL of its non-null fields match the corresponding input parameters.
+         */
+        public boolean matches(String artistName, String trackTitle, List<String> sceneryTags) {
+            // Start with true - we'll only set to false if a specified field doesn't match
+            boolean matches = true;
+
+            // Check artist name if this trigger specifies one
+            if (this.artistName != null && !this.artistName.isBlank()) {
+                matches = this.artistName.equalsIgnoreCase(artistName);
+            }
+
+            // Check track title if this trigger specifies one
+            if (this.trackTitle != null && !this.trackTitle.isBlank()) {
+                matches = matches && this.trackTitle.equalsIgnoreCase(trackTitle);
+            }
+
+            // Check scenery tags if this trigger specifies any
+            if (!this.sceneryTags.isEmpty()) {
+                if (sceneryTags == null) {
+                    matches = false;
+                } else {
+                    List<String> inputSceneryTags = convertListToLowerCase(sceneryTags);
+                    for (String tag : this.sceneryTags) {
+                        if (!inputSceneryTags.contains(tag)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return matches;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) { return false; }
+            CompanionTrigger that = (CompanionTrigger) o;
+            return Objects.equals(artistName, that.artistName)
+                && Objects.equals(trackTitle, that.trackTitle)
+                && Objects.equals(sceneryTags, that.sceneryTags);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(artistName, trackTitle, sceneryTags);
+        }
+
+        private List<String> convertListToLowerCase(List<String> input) {
+            if (input == null) {
+                return new ArrayList<>();
+            }
+            List<String> lowerCaseList = new ArrayList<>();
+            for (String tag : input) {
+                if (tag != null) {
+                    lowerCaseList.add(tag.toLowerCase());
+                }
+            }
+            return lowerCaseList;
+        }
+    }
+}
