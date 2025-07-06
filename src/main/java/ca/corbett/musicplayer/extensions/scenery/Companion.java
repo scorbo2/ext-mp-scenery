@@ -8,12 +8,58 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.imageio.ImageIO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Represents a Companion and all of the associated configuration and images for it.
+ * Companions have one or more "triggers" that allow them to offer commentary on a given
+ * track, a given artist, and/or a given background scenery image. Companions are defined
+ * in json with the following example structure:
+ * <BLOCKQUOTE><PRE>
+   {
+     "name": "MyCompanion",
+     "language": "en",
+     "triggers": [
+     {
+       "artist": "The Beatles",
+       "track": "Hey Jude",
+       "scenery": ["studio", "1960s"],
+       "responses": [
+         "What a classic song!",
+         "The Beatles were amazing!",
+         "Hey Jude never gets old."
+       ]
+     },
+     {
+       "scenery": ["forest"],
+       "responses": [
+         "I love the peaceful forest atmosphere.",
+         "The trees are so calming."
+       ]
+     }
+     ]
+   }
+  </PRE></BLOCKQUOTE>
+ * Companions can have one or more associated images, which are loaded from the same
+ * directory as the json file and with the same base name. For example, Companion.json could
+ * have matching image files Companion1.jpg and Companion2.png - either jpg or png format
+ * is allowed. The loaded images may be scaled as needed. Smaller images will load more
+ * rapidly and will take up less memory, just saying.
+ * <p>
+ * On every track change, and at regular (configurable) intervals, the currently selected
+ * Companion will be queried to see if it has anything to say for the given artist, track,
+ * or scenery.
+ * </p>
+ * <p>
+ *     <b>Defining a trigger</b> - all trigger parameters are optional, with the following
+ *     restrictions: you must specify at least one non-empty response, and you have to
+ *     specify at least ONE of Artist, Track, and SceneryTags. If you specify more than one,
+ *     then ALL of what you have specified must match in order to be considered a match.
+ * </p>
+ */
 public class Companion {
 
     private final String name;
@@ -32,7 +78,7 @@ public class Companion {
      * Populate and return a new Companion instance using data from the given file.
      */
     public static Companion loadCompanion(File metaFile) throws IOException {
-        // 1) Verify the given json file exists and is well-formed
+        // Verify the given json file exists and is well-formed
         if (!metaFile.exists() || !metaFile.isFile()) {
             throw new IOException("Meta file does not exist or is not a file: " + metaFile.getPath());
         }
@@ -45,7 +91,7 @@ public class Companion {
             throw new IOException("Failed to parse JSON file: " + metaFile.getPath(), e);
         }
 
-        // 3) Parse the json metaFile and extract Companion information
+        // Parse the json metaFile and extract Companion information
         if (!rootNode.has("name")) {
             throw new IOException("Meta file must specify a 'name' field");
         }
@@ -54,7 +100,7 @@ public class Companion {
             throw new IOException("Companion name cannot be empty");
         }
 
-        // 2) Verify one or more jpg/png images starting with the base file name exist and are readable
+        // Verify one or more jpg/png images starting with the base file name exist and are readable
         String baseName = getBaseFileName(metaFile);
         String parentDir = metaFile.getParent();
         List<File> imageFiles = findImageFiles(parentDir, baseName);
@@ -62,7 +108,7 @@ public class Companion {
             throw new IOException("No corresponding image files (jpg/png) found starting with: " + baseName);
         }
 
-        // 4) Load all associated image files
+        // Load all associated image files
         List<BufferedImage> images = new ArrayList<>();
         for (File imageFile : imageFiles) {
             try {
@@ -87,6 +133,9 @@ public class Companion {
                     triggerMap.put(trigger, responses);
                 }
             }
+        }
+        if (triggerMap.isEmpty()) {
+            throw new IOException("Companions must specify at least one trigger.");
         }
 
         return new Companion(name, metaFile, images, triggerMap);

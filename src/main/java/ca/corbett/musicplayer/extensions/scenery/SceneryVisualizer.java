@@ -38,12 +38,12 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
         // Render background scenery image
         //imageScroller.renderFrame(g);
 
-        // TODO avatar overlay
+        // TODO companion overlay
 
-        // TODO avatar text animation
+        // TODO companion text animation
         textRenderer.updateTextAnimation();
 
-        // TODO avatar movement:
+        // TODO companion movement:
         imageAnimator.update();
         imageAnimator.render(g);
 
