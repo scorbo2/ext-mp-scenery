@@ -1,5 +1,9 @@
 package ca.corbett.musicplayer.extensions.scenery;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -62,18 +66,45 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Companion {
 
-    private final String name;
-    private final String language;
-    private final File metaFile;
-    private final List<BufferedImage> images;
-    private final Map<CompanionTrigger, List<String>> triggerMap;
+    public static final int IMAGE_MAX_DIM = 400; // arbitrary size limit for width or height
+    public static final String DEFAULT_TRACK_CHANGE_MSG = "You are listening to ${track} by ${artist}.";
+    public static final String DEFAULT_LANGUAGE = "en";
+    public static final Color DEFAULT_TEXT_BG_COLOR = Color.BLACK;
+    public static final Color DEFAULT_TEXT_COLOR = Color.GREEN;
+    public static final String DEFAULT_FONT = Font.SANS_SERIF;
+    public static final int DEFAULT_FONT_SIZE = 18;
 
-    protected Companion(String name, String language, File metaFile, List<BufferedImage> images, Map<CompanionTrigger, List<String>> triggerMap) {
+    private final String name;
+    private final String description;
+    private String language;
+    private final List<BufferedImage> images;
+    private List<String> trackChangeMessages;
+    private final List<CompanionTrigger> triggers;
+    private Font font;
+    private Color textColor;
+    private Color textBgColor;
+
+    protected Companion(String name, String description, List<BufferedImage> images, List<CompanionTrigger> triggers) {
         this.name = name;
-        this.language = language;
-        this.metaFile = metaFile;
+        this.description = description;
         this.images = images;
-        this.triggerMap = triggerMap == null ? new HashMap<>() : triggerMap;
+        this.triggers = triggers;
+    }
+
+    protected Companion setLanguage(String language) {
+        this.language = language;
+        return this;
+    }
+
+    protected Companion setFont(Font font) {
+        this.font = font;
+        return this;
+    }
+
+    protected Companion setTextColors(Color textColor, Color textBgColor) {
+        this.textColor = textColor;
+        this.textBgColor = textBgColor;
+        return this;
     }
 
     /**
@@ -94,64 +125,23 @@ public class Companion {
         }
 
         // Parse the json metaFile and extract Companion information
-        if (!rootNode.has("name")) {
-            throw new IOException("Meta file must specify a 'name' field");
-        }
-        String name = rootNode.get("name").asText();
-        if (name == null || name.trim().isEmpty()) {
-            throw new IOException("Companion name cannot be empty");
-        }
-        String language = "en";
-        if (rootNode.has("language")) {
-            language = rootNode.get("language").asText();
-        }
-        if (language == null || language.trim().isEmpty()) {
-            throw new IOException("Companion must specify a language");
-        }
+        String name = parseName(rootNode);
+        String description = parseDescription(rootNode);
+        String language = parseLanguage(rootNode);
+        Font font = parseFont(rootNode);
+        Color textColor = parseTextColor(rootNode);
+        Color textBgColor = parseTextBgColor(rootNode);
+        List<BufferedImage> images = parseImages(metaFile, rootNode);
+        List<CompanionTrigger> triggers = parseTriggers(rootNode);
 
-        // Verify one or more jpg/png images starting with the base file name exist and are readable
-        String baseName = getBaseFileName(metaFile);
-        String parentDir = metaFile.getParent();
-        List<File> imageFiles = findImageFiles(parentDir, baseName);
-        if (imageFiles.isEmpty()) {
-            throw new IOException("No corresponding image files (jpg/png) found starting with: " + baseName);
-        }
-
-        // Load all associated image files
-        List<BufferedImage> images = new ArrayList<>();
-        for (File imageFile : imageFiles) {
-            try {
-                BufferedImage image = ImageIO.read(imageFile);
-                if (image == null) {
-                    throw new IOException("Failed to load image file: " + imageFile.getPath());
-                }
-                images.add(image);
-            } catch (Exception e) {
-                throw new IOException("Error reading image file: " + imageFile.getPath(), e);
-            }
-        }
-
-        // Parse triggers
-        Map<CompanionTrigger, List<String>> triggerMap = new HashMap<>();
-        if (rootNode.has("triggers")) {
-            JsonNode triggersNode = rootNode.get("triggers");
-            if (triggersNode.isArray()) {
-                for (JsonNode triggerNode : triggersNode) {
-                    CompanionTrigger trigger = parseTrigger(triggerNode);
-                    List<String> responses = parseResponses(triggerNode);
-                    triggerMap.put(trigger, responses);
-                }
-            }
-        }
-        if (triggerMap.isEmpty()) {
-            throw new IOException("Companions must specify at least one trigger.");
-        }
-
-        return new Companion(name, language, metaFile, images, triggerMap);
+        return new Companion(name, description, images, triggers)
+            .setLanguage(language)
+            .setFont(font)
+            .setTextColors(textColor, textBgColor);
     }
 
     public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
-        for (CompanionTrigger trigger : triggerMap.keySet()) {
+        for (CompanionTrigger trigger : triggers) {
             if (trigger.matches(artistName, trackTitle, sceneryTags)) {
                 return true;
             }
@@ -172,7 +162,7 @@ public class Companion {
     public String getResponse(String artistName, String trackTitle, List<String> sceneryTags) {
         // Find all triggers that match these parameters:
         List<CompanionTrigger> matchingTriggers = new ArrayList<>();
-        for (CompanionTrigger candidateTrigger : triggerMap.keySet()) {
+        for (CompanionTrigger candidateTrigger : triggers) {
             if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
                 matchingTriggers.add(candidateTrigger);
             }
@@ -188,7 +178,7 @@ public class Companion {
 
         // Pick one matching trigger at random and get its list of possible responses:
         CompanionTrigger trigger = matchingTriggers.get(rand.nextInt(matchingTriggers.size()));
-        List<String> responses = triggerMap.get(trigger);
+        List<String> responses = trigger.getResponses();
         if (responses == null || responses.isEmpty()) {
             return null;
         }
@@ -210,9 +200,9 @@ public class Companion {
     public List<String> getAllMatchingResponses(String artistName, String trackTitle, List<String> sceneryTags) {
         List<String> allResponses = new ArrayList<>();
 
-        for (CompanionTrigger candidateTrigger : triggerMap.keySet()) {
+        for (CompanionTrigger candidateTrigger : triggers) {
             if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
-                List<String> responses = triggerMap.get(candidateTrigger);
+                List<String> responses = candidateTrigger.getResponses();
                 if (responses != null) {
                     allResponses.addAll(responses);
                 }
@@ -220,6 +210,132 @@ public class Companion {
         }
 
         return allResponses;
+    }
+
+    private static String parseName(JsonNode rootNode) throws IOException {
+        if (!rootNode.has("name")) {
+            throw new IOException("Meta file must specify a 'name' field");
+        }
+        String name = rootNode.get("name").asText();
+        if (name == null || name.trim().isEmpty()) {
+            throw new IOException("Companion name cannot be empty");
+        }
+        return name;
+    }
+
+    private static String parseDescription(JsonNode rootNode) {
+        String description = "";
+        if (rootNode.has("description")) {
+            description = rootNode.get("description").asText();
+        }
+        return description;
+    }
+
+    private static String parseLanguage(JsonNode rootNode) throws IOException {
+        String language = DEFAULT_LANGUAGE;
+        if (rootNode.has("language")) {
+            language = rootNode.get("language").asText();
+            if (language == null || language.trim().isEmpty()) {
+                // This message is misleading, because it's actually optional in the json.
+                // But if you do specify it, it can't be a blank string or empty.
+                throw new IOException("Companion must specify a language");
+            }
+        }
+        return language;
+    }
+
+    private static Font parseFont(JsonNode rootNode) {
+        String fontFace = DEFAULT_FONT;
+        if (rootNode.has("fontFace")) {
+            fontFace = rootNode.get("fontFace").asText();
+        }
+        int fontSize = DEFAULT_FONT_SIZE;
+        if (rootNode.has("fontSize") && rootNode.get("fontSize").isInt()) {
+            fontSize = rootNode.get("fontSize").asInt();
+            if (fontSize < 4) {
+                fontSize = 4;
+            }
+            else if (fontSize > 88) {
+                fontSize = 88;
+            }
+        }
+
+        return new Font(fontFace, Font.PLAIN, fontSize);
+    }
+
+    private static Color parseTextColor(JsonNode rootNode) throws IOException {
+        Color textColor = DEFAULT_TEXT_COLOR;
+        if (rootNode.has("textColor")) {
+            textColor = parseRgbString(rootNode.get("textColor").asText());
+        }
+        return textColor;
+    }
+
+    private static Color parseTextBgColor(JsonNode rootNode) throws IOException {
+        Color textBgColor = DEFAULT_TEXT_BG_COLOR;
+        if (rootNode.has("textBgColor")) {
+            textBgColor = parseRgbString(rootNode.get("textBgColor").asText());
+        }
+        return textBgColor;
+    }
+
+    private static List<BufferedImage> parseImages(File metaFile, JsonNode rootNode) throws IOException {
+        // Verify one or more jpg/png images starting with the base file name exist and are readable
+        String baseName = getBaseFileName(metaFile);
+        String parentDir = metaFile.getParent();
+        List<File> imageFiles = findImageFiles(parentDir, baseName);
+        if (imageFiles.isEmpty()) {
+            throw new IOException("No corresponding image files (jpg/png) found starting with: " + baseName);
+        }
+
+        // Load all associated image files
+        List<BufferedImage> images = new ArrayList<>();
+        for (File imageFile : imageFiles) {
+            try {
+                BufferedImage image = ImageIO.read(imageFile);
+                if (image == null) {
+                    throw new IOException("Failed to load image file: " + imageFile.getPath());
+                }
+                images.add(scaleImage(image, IMAGE_MAX_DIM));
+            } catch (Exception e) {
+                throw new IOException("Error reading image file: " + imageFile.getPath(), e);
+            }
+
+            // TODO add a border maybe?
+        }
+
+        return images;
+    }
+
+    private static List<CompanionTrigger> parseTriggers(JsonNode rootNode) throws IOException {
+        // Parse triggers
+        List<CompanionTrigger> triggers = new ArrayList<>();
+        if (rootNode.has("triggers")) {
+            JsonNode triggersNode = rootNode.get("triggers");
+            if (triggersNode.isArray()) {
+                for (JsonNode triggerNode : triggersNode) {
+                    CompanionTrigger trigger = CompanionTrigger.parseTrigger(triggerNode);
+                    triggers.add(trigger);
+                }
+            }
+        }
+        if (triggers.isEmpty()) {
+            throw new IOException("Companions must specify at least one trigger.");
+        }
+
+        return triggers;
+    }
+
+    private static Color parseRgbString(String rgbString) throws IOException {
+        if (rgbString == null || rgbString.length() != 8 || ! rgbString.startsWith("0x")) {
+            throw new IOException("Color specifies must be in the format 0xRRGGBB");
+        }
+        try {
+            return new Color(Long.decode(rgbString).intValue());
+        }
+        catch (NumberFormatException nfe) {
+            throw new IOException("Invalid color value \""+rgbString+"\"");
+        }
     }
 
     private static String getBaseFileName(File file) {
@@ -262,152 +378,58 @@ public class Companion {
         return imageFiles;
     }
 
-    private static CompanionTrigger parseTrigger(JsonNode triggerNode) throws IOException {
-        String artistName = triggerNode.has("artist") ? triggerNode.get("artist").asText() : null;
-        String trackTitle = triggerNode.has("track") ? triggerNode.get("track").asText() : null;
-
-        List<String> sceneryTags = new ArrayList<>();
-        if (triggerNode.has("scenery")) {
-            JsonNode sceneryNode = triggerNode.get("scenery");
-            if (sceneryNode.isArray()) {
-                for (JsonNode tagNode : sceneryNode) {
-                    sceneryTags.add(tagNode.asText());
-                }
-            }
-        }
-
-        // Validate that at least one field is specified
-        if ((artistName == null || artistName.trim().isEmpty()) &&
-            (trackTitle == null || trackTitle.trim().isEmpty()) &&
-            sceneryTags.isEmpty()) {
-            throw new IOException("CompanionTrigger must specify at least one of: artist, track, or scenery tags");
-        }
-
-        return new CompanionTrigger(artistName, trackTitle, sceneryTags);
-    }
-
-    private static List<String> parseResponses(JsonNode triggerNode) throws IOException {
-        List<String> responses = new ArrayList<>();
-        if (triggerNode.has("responses")) {
-            JsonNode responsesNode = triggerNode.get("responses");
-            if (responsesNode.isArray()) {
-                for (JsonNode responseNode : responsesNode) {
-                    String response = responseNode.asText();
-                    if (response != null && !response.trim().isEmpty()) {
-                        responses.add(response);
-                    }
-                }
-            }
-        }
-
-        // Validate that we have at least one non-empty response
-        if (responses.isEmpty()) {
-            throw new IOException("Each CompanionTrigger must have at least one non-empty response");
-        }
-
-        return responses;
-    }
-
     public String getName() { return name; }
+    public String getDescription() { return description; }
     public String getLanguage() { return language; }
+    public Font getFont() { return font; }
+    public Color getTextColor() { return textColor; }
+    public Color getTextBgColor() { return textBgColor; }
     public List<BufferedImage> getImages() { return new ArrayList<>(images); }
 
-    public static class CompanionTrigger {
-        private final String artistName;
-        private final String trackTitle;
-        private final List<String> sceneryTags;
+    /**
+     * Scales an image down proportionally so that the largest of its dimensions matches the given desired size.
+     * For example, a landscape image will be scaled down so that its with matches maxDimension.
+     * A portrait image will be scaled down so that its height matches maxDimension.
+     * A square image will be scaled down until both width and height equals maxDimension.
+     * This should probably live in swing-extras ImageUtils or such.
+     *
+     * @param image The image to scale.
+     * @param maxDimension The desired largest dimension of the scaled image.
+     * @return The scaled image.
+     */
+    private static BufferedImage scaleImage(BufferedImage image, int maxDimension) {
+        int originalWidth = image.getWidth();
+        int originalHeight = image.getHeight();
 
-        public CompanionTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
-            this.artistName = artistName;
-            this.trackTitle = trackTitle;
-            this.sceneryTags = convertListToLowerCase(sceneryTags);
+        // Check if the image already fits within the max dimension
+        if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
+            return image; // No scaling needed
         }
 
-        public boolean hasArtistName() {
-            return artistName != null && !artistName.isBlank();
+        // Calculate scaling factor based on the larger dimension
+        double scaleFactor;
+        if (originalWidth > originalHeight) {
+            // Landscape - scale based on width
+            scaleFactor = (double) maxDimension / originalWidth;
+        } else {
+            // Portrait (or square) - scale based on height
+            scaleFactor = (double) maxDimension / originalHeight;
         }
 
-        public String getArtistName() {
-            return artistName;
-        }
+        // Calculate new dimensions
+        int newWidth = (int) Math.round(originalWidth * scaleFactor);
+        int newHeight = (int) Math.round(originalHeight * scaleFactor);
 
-        public boolean hasTrackTitle() {
-            return trackTitle != null && !trackTitle.isBlank();
-        }
+        // Create the scaled image
+        BufferedImage scaledImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = scaledImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.drawImage(image, 0, 0, newWidth, newHeight, null);
+        g.dispose();
 
-        public String getTrackTitle() {
-            return trackTitle;
-        }
-
-        public boolean hasSceneryTags() {
-            return !sceneryTags.isEmpty();
-        }
-
-        public List<String> getSceneryTags() {
-            return new ArrayList<>(sceneryTags);
-        }
-
-        /**
-         * Fixed version: Returns true if this trigger matches the given parameters.
-         * A trigger matches if ALL of its non-null fields match the corresponding input parameters.
-         */
-        public boolean matches(String artistName, String trackTitle, List<String> sceneryTags) {
-            // Start with true - we'll only set to false if a specified field doesn't match
-            boolean matches = true;
-
-            // Check artist name if this trigger specifies one
-            if (this.artistName != null && !this.artistName.isBlank()) {
-                matches = this.artistName.equalsIgnoreCase(artistName);
-            }
-
-            // Check track title if this trigger specifies one
-            if (this.trackTitle != null && !this.trackTitle.isBlank()) {
-                matches = matches && this.trackTitle.equalsIgnoreCase(trackTitle);
-            }
-
-            // Check scenery tags if this trigger specifies any
-            if (!this.sceneryTags.isEmpty()) {
-                if (sceneryTags == null) {
-                    matches = false;
-                } else {
-                    List<String> inputSceneryTags = convertListToLowerCase(sceneryTags);
-                    for (String tag : this.sceneryTags) {
-                        if (!inputSceneryTags.contains(tag)) {
-                            matches = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return matches;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) { return false; }
-            CompanionTrigger that = (CompanionTrigger) o;
-            return Objects.equals(artistName, that.artistName)
-                && Objects.equals(trackTitle, that.trackTitle)
-                && Objects.equals(sceneryTags, that.sceneryTags);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(artistName, trackTitle, sceneryTags);
-        }
-
-        private List<String> convertListToLowerCase(List<String> input) {
-            if (input == null) {
-                return new ArrayList<>();
-            }
-            List<String> lowerCaseList = new ArrayList<>();
-            for (String tag : input) {
-                if (tag != null) {
-                    lowerCaseList.add(tag.toLowerCase());
-                }
-            }
-            return lowerCaseList;
-        }
+        return scaledImage;
     }
+
 }

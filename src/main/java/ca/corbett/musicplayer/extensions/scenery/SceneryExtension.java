@@ -22,6 +22,7 @@ public class SceneryExtension extends MusicPlayerExtension {
     public SceneryExtension() {
         BufferedImage logoImage = null;
         try {
+            // TODO test code remove me
             logoImage = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/images/sc_logo.png"));
         }
