@@ -1,0 +1,20 @@
+{
+  "name": "RoboButler",
+  "description": "A friendly robot. He may or may not be homicidal.",
+  "language": "en",
+  "fontFace": "Monospaced",
+  "textColor": "0xFFFFFF",
+  "textBgColor": "0x000000",
+  "trackChange": [
+    "You are now listening to ${track} by ${artist}."
+  ],
+  "triggers": [
+    {
+      "scenery": ["ruins"],
+      "responses": [
+        "Ah yes, when my kind conquers humans, this is what your world shall look like.",
+        "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point."
+      ]
+    }
+  ]
+}

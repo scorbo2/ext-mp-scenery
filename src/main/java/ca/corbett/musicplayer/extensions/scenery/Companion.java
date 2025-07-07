@@ -7,6 +7,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,7 +67,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Companion {
 
-    public static final int IMAGE_MAX_DIM = 400; // arbitrary size limit for width or height
+    public static final int IMAGE_MAX_DIM = 450; // arbitrary size limit for width or height
     public static final String DEFAULT_TRACK_CHANGE_MSG = "You are listening to ${track} by ${artist}.";
     public static final String DEFAULT_LANGUAGE = "en";
     public static final Color DEFAULT_TEXT_BG_COLOR = Color.BLACK;
@@ -120,8 +121,31 @@ public class Companion {
         JsonNode rootNode;
         try {
             rootNode = mapper.readTree(metaFile);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new IOException("Failed to parse JSON file: " + metaFile.getPath(), e);
+        }
+
+        return loadCompanion(rootNode, parseImages(metaFile, rootNode));
+    }
+
+    protected static Companion loadCompanion(InputStream inStream, BufferedImage image) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode rootNode;
+        try {
+            rootNode = mapper.readTree(inStream);
+        }
+        catch (Exception e) {
+            throw new IOException("Failed to parse JSON resource!", e);
+        }
+
+        return loadCompanion(rootNode, List.of(scaleImage(image, IMAGE_MAX_DIM)));
+
+    }
+
+    public static Companion loadCompanion(JsonNode rootNode, List<BufferedImage> images) throws IOException {
+        if (images == null || images.isEmpty()) {
+            throw new IOException("Companion must have at least one image.");
         }
 
         // Parse the json metaFile and extract Companion information
@@ -131,7 +155,6 @@ public class Companion {
         Font font = parseFont(rootNode);
         Color textColor = parseTextColor(rootNode);
         Color textBgColor = parseTextBgColor(rootNode);
-        List<BufferedImage> images = parseImages(metaFile, rootNode);
         List<CompanionTrigger> triggers = parseTriggers(rootNode);
 
         return new Companion(name, description, images, triggers)
@@ -397,7 +420,7 @@ public class Companion {
      * @param maxDimension The desired largest dimension of the scaled image.
      * @return The scaled image.
      */
-    private static BufferedImage scaleImage(BufferedImage image, int maxDimension) {
+    public static BufferedImage scaleImage(BufferedImage image, int maxDimension) {
         int originalWidth = image.getWidth();
         int originalHeight = image.getHeight();
 

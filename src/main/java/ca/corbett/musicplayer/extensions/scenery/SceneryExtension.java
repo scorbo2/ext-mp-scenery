@@ -15,22 +15,20 @@ import java.util.logging.Logger;
 
 public class SceneryExtension extends MusicPlayerExtension {
     private static final Logger log = Logger.getLogger(SceneryExtension.class.getName());
-    public static BufferedImage scLogo; // TEMP TODO remove me this is for testing the ImageAnimator
+    public static Companion roboButler;
 
     private final AppExtensionInfo extInfo;
 
     public SceneryExtension() {
-        BufferedImage logoImage = null;
         try {
-            // TODO test code remove me
-            logoImage = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
-                "/ca/corbett/musicplayer/extensions/scenery/images/sc_logo.png"));
+            BufferedImage img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.jpg"));
+            roboButler = Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.json"), img);
+            log.info("Loaded RoboButler!");
         }
         catch (IOException ioe) {
-            log.log(Level.SEVERE, "Can't load logo image!", ioe);
-        }
-        finally {
-            scLogo = logoImage;
+            log.log(Level.SEVERE, "Can't load extension resources!", ioe);
         }
         extInfo = AppExtensionInfo.fromExtensionJar(getClass(), "/ca/corbett/musicplayer/extensions/scenery/extInfo.json");
         if (extInfo == null) {
@@ -45,6 +43,12 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public List<AbstractProperty> getConfigProperties() {
+        // TODO:
+        //   current companion (fallback to robobutler if selected doesn't exist)
+        //   popup interval (on track change + some configurable interval)
+        //   scenery change interval
+        //   scenery scroll properties (speed and bounce easing)
+        //
         return List.of();
     }
 

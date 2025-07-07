@@ -26,7 +26,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer {
 
         // TODO load image, create ImageScroller and text animator
         textRenderer = new AnimatedTextRenderer(width - 200, 500, "Hello there! This is a test of the text animation code! Just ignore me for now, it will get a lot slicker soon!", 12);
-        imageAnimator = new ImageAnimator(SceneryExtension.scLogo, 0, 0, 800, 100, 240, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.05);
+        imageAnimator = new ImageAnimator(SceneryExtension.roboButler.getImages().get(0), 0, 0, 800, 100, 240, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.05);
     }
 
     @Override
