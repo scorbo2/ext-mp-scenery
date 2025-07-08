@@ -4,8 +4,6 @@ import ca.corbett.extras.image.ImagePanel;
 import ca.corbett.extras.image.ImagePanelConfig;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.Properties;
-import ca.corbett.extras.properties.PropertiesDialog;
-import ca.corbett.forms.FormPanel;
 import ca.corbett.forms.fields.ComboField;
 import ca.corbett.forms.fields.FormField;
 import ca.corbett.forms.fields.PanelField;
@@ -15,7 +13,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -28,6 +25,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This custom AbstractProperty wraps our Companion chooser into a neat little preview area
+ * that will update to show an image of the selected Companion and also their basic stats.
+ * There's some unpleasantness here in our generateFormField method to get around some
+ * current limitations in swing-extras which I will fix at some point:
+ * <A HREF="https://github.com/scorbo2/swing-extras/issues/44">Issue 44</A>
+ */
 public class CompanionChooserProperty extends AbstractProperty {
 
     private static final Logger logger = Logger.getLogger(CompanionChooserProperty.class.getName());
@@ -76,6 +80,8 @@ public class CompanionChooserProperty extends AbstractProperty {
 
     @Override
     public void saveToProps(Properties props) {
+        // Note that despite all the stuff we show in our generated form field,
+        // the only thing we really care about is the currently selected Companion:
         props.setString(fullyQualifiedName, getSelectedItem().getName());
     }
 
@@ -93,15 +99,15 @@ public class CompanionChooserProperty extends AbstractProperty {
     @Override
     public FormField generateFormField() {
 
-        // This is a rough draft...
-        // basically I'm limited by my own swing-extras library, specifically issue #44
-        // there's currently no way to specify custom form logic for extension config properties.
+        // This is a bit ugly, but it works!
+        // Basically I'm limited by my own swing-extras library, specifically issue #44.
+        // There's currently no way to specify custom form logic for extension config properties.
         //
         // WHAT I WANT TO DO:
         //    Have a dropdown for selected Companion
         //    All the built-in ones and all the user-defined ones are shown in one flat list
-        //    when you select one, the details panel underneath changes to show that Companion
-        //    like, preview image, name, description, language, basic stats (count of responses/triggers, etc)
+        //    when you select one, the details panel underneath changes to show that Companion's details
+        //    like: preview image, description, language, basic stats (count of responses/triggers, etc)
         //    But swing-extras doesn't currently allow custom form logic from the Property level...
         //
         // WHAT I HAVE TO DO HERE:
@@ -110,7 +116,8 @@ public class CompanionChooserProperty extends AbstractProperty {
         //    have a custom panel underneath the combo but within the same PanelField
         //    when the combo selection changes, manually update the details panel
         //
-        // will this even work? I'm not sure... never tried this before with my own library, lol
+        // Never tried this before with my own library, lol
+        // But it works!
 
         PanelField panelField = new PanelField();
         panelField.setIdentifier(fullyQualifiedName);
@@ -145,6 +152,8 @@ public class CompanionChooserProperty extends AbstractProperty {
         imagePanel.setPreferredSize(new Dimension(125,125));
         panel.add(imagePanel, gbc);
 
+        // I want a JTextArea for description instead of a simple JLabel because the description
+        // might be a bit long and JTextArea handles line wrap much more gracefully than a JLabel:
         gbc.gridx = 2;
         gbc.gridwidth = 2;
         gbc.gridheight = 1;
@@ -183,11 +192,6 @@ public class CompanionChooserProperty extends AbstractProperty {
         gbc.weighty = 1.0;
         final JLabel spacer = new JLabel("");
         panel.add(spacer, gbc);
-
-
-        // Great, now build out a custom JPanel with companion details:
-        // TODO
-        // And initialize these labels with values from whatever is currently selected (so it comes up first load looking correct)
 
         // Now add a value change listener on our chooser to update the details panel as it changes:
         field.addValueChangedAction(new AbstractAction() {
