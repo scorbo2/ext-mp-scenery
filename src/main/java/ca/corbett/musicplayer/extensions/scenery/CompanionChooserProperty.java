@@ -1,5 +1,7 @@
 package ca.corbett.musicplayer.extensions.scenery;
 
+import ca.corbett.extras.image.ImagePanel;
+import ca.corbett.extras.image.ImagePanelConfig;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.Properties;
 import ca.corbett.extras.properties.PropertiesDialog;
@@ -9,8 +11,17 @@ import ca.corbett.forms.fields.FormField;
 import ca.corbett.forms.fields.PanelField;
 
 import javax.swing.AbstractAction;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +102,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         //    All the built-in ones and all the user-defined ones are shown in one flat list
         //    when you select one, the details panel underneath changes to show that Companion
         //    like, preview image, name, description, language, basic stats (count of responses/triggers, etc)
+        //    But swing-extras doesn't currently allow custom form logic from the Property level...
         //
         // WHAT I HAVE TO DO HERE:
         //    create a custom AbstractProperty implementation to wrap everything (combo + details panel)
@@ -103,9 +115,11 @@ public class CompanionChooserProperty extends AbstractProperty {
         PanelField panelField = new PanelField();
         panelField.setIdentifier(fullyQualifiedName);
         JPanel panel = panelField.getPanel();
-        panel.setLayout(new BorderLayout());
+        panel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(4, 4, 4, 4);
 
-        FormPanel subForm = new FormPanel(FormPanel.Alignment.TOP_LEFT);
         List<String> items = new ArrayList<>();
         for (Companion companion : companions) {
             items.add(companion.getName());
@@ -113,7 +127,58 @@ public class CompanionChooserProperty extends AbstractProperty {
         ComboField field = new ComboField(propertyLabel, items, selectedIndex, false);
         field.setIdentifier(fullyQualifiedName + ".chooser");
         field.setEnabled(!isReadOnly);
-        subForm.addFormField(field);
+        field.render(panel, gbc);
+        gbc.gridx = 3;
+        JLabel spacerLabel = new JLabel("");
+        logger.info("weightX was "+gbc.weightx+" before I messed with it");
+        gbc.weightx = 1.0;
+        panel.add(spacerLabel, gbc);
+
+        Companion currentCompanion = getSelectedItem();
+
+        gbc = new GridBagConstraints();
+        gbc.gridy = 1;
+        gbc.gridx = 1;
+        gbc.gridheight = 3;
+        gbc.anchor = GridBagConstraints.CENTER;
+        final ImagePanel imagePanel = new ImagePanel(currentCompanion.getImages().get(0), ImagePanelConfig.createSimpleReadOnlyProperties());
+        imagePanel.setPreferredSize(new Dimension(125,125));
+        panel.add(imagePanel, gbc);
+
+        gbc.gridx = 2;
+        gbc.gridwidth = 2;
+        gbc.gridheight = 1;
+        gbc.weightx = 1.0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        final JTextArea descArea = new JTextArea(currentCompanion.getDescription());
+        descArea.setWrapStyleWord(true);
+        descArea.setLineWrap(true);
+        descArea.setEditable(false);
+        descArea.setOpaque(false); // Makes background transparent
+        descArea.setFocusable(false); // Prevents focus
+        descArea.setBorder(null); // Removes border to look like a label
+        //final JLabel descLabel = new JLabel(currentCompanion.getDescription());
+        panel.add(descArea, gbc);
+
+        gbc.gridy++;
+        gbc.weightx = 0.0;
+        gbc.insets = new Insets(20,4,4,0);
+        final JLabel langLabel = new JLabel("Language: "+currentCompanion.getLanguage());
+        langLabel.setFont(langLabel.getFont().deriveFont(Font.PLAIN));
+        panel.add(langLabel, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(8,4,4,0);
+        final JLabel label3 = new JLabel("third line");
+        label3.setFont(label3.getFont().deriveFont(Font.PLAIN));
+        panel.add(label3, gbc);
+
+        gbc.gridy++;
+        gbc.weighty = 1.0;
+        final JLabel spacer = new JLabel("");
+        panel.add(spacer, gbc);
+
 
         // Great, now build out a custom JPanel with companion details:
         // TODO
@@ -123,12 +188,13 @@ public class CompanionChooserProperty extends AbstractProperty {
         field.addValueChangedAction(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO
+                Companion c = companions.get(field.getSelectedIndex());
+                imagePanel.setImage(c.getImages().get(0));
+                descArea.setText(c.getDescription());
+                langLabel.setText(c.getLanguage());
             }
         });
 
-        subForm.render();
-        panel.add(subForm);
         return panelField;
     }
 
@@ -142,9 +208,17 @@ public class CompanionChooserProperty extends AbstractProperty {
             return;
         }
 
-        // TODO how do I get the selected index from the ComboField embedded inside the PanelField?
-        //      only approach I can think of is to interrogate the PanelField's panel's components until you find a JComboBox...
-        //      which I guess would work since we know there will only be one JComboBox in that entire PanelField.
-        //selectedIndex = ((ComboField)field).getSelectedIndex();
+        // How do I get the selected index from the ComboField embedded inside the PanelField?
+        // only approach I can think of is to interrogate the PanelField's panel's components until you find
+        // a JComboBox... which I guess would work since we know there will only be one JComboBox in that
+        // entire PanelField.
+        PanelField panelField = (PanelField)field;
+        for (Component c : panelField.getPanel().getComponents()) {
+            if (c instanceof JComboBox) {
+                selectedIndex = ((JComboBox)c).getSelectedIndex();
+                return;
+            }
+        }
+        logger.warning("CompanionChooserProperty.loadFromFormField: no chooser found!");
     }
 }

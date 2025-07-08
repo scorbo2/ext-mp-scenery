@@ -3,6 +3,10 @@ package ca.corbett.musicplayer.extensions.scenery;
 import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.image.ImageUtil;
 import ca.corbett.extras.properties.AbstractProperty;
+import ca.corbett.extras.properties.BooleanProperty;
+import ca.corbett.extras.properties.EnumProperty;
+import ca.corbett.extras.properties.IntegerProperty;
+import ca.corbett.extras.properties.LabelProperty;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
 import ca.corbett.musicplayer.ui.VisualizationManager;
 
@@ -16,8 +20,28 @@ import java.util.logging.Logger;
 public class SceneryExtension extends MusicPlayerExtension {
     private static final Logger log = Logger.getLogger(SceneryExtension.class.getName());
     public static Companion roboButler;
+    public static Companion bennyTheBear;
 
     private final AppExtensionInfo extInfo;
+
+    public enum CommentaryInterval {
+        ONE("Every minute"),
+        TWO("Every two minutes"),
+        FIVE("Every five minutes"),
+        TEN("Every ten minutes"),
+        FIFTEEN("Every fifteen minutes");
+
+        private final String label;
+
+        CommentaryInterval(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
 
     public SceneryExtension() {
         try {
@@ -26,6 +50,13 @@ public class SceneryExtension extends MusicPlayerExtension {
             roboButler = Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.json"), img);
             log.info("Loaded RoboButler!");
+
+            img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.jpg"));
+            bennyTheBear = Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.json"), img);
+            log.info("Loaded Benny the Bear!");
+
         }
         catch (IOException ioe) {
             log.log(Level.SEVERE, "Can't load extension resources!", ioe);
@@ -49,7 +80,16 @@ public class SceneryExtension extends MusicPlayerExtension {
         //   scenery change interval
         //   scenery scroll properties (speed and bounce easing)
         //
-        return List.of();
+
+        List<AbstractProperty> props = new ArrayList<>();
+
+        props.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
+        props.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", List.of(roboButler, bennyTheBear), 0));
+        props.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always announce when current track changes", true));
+        props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
+        props.add(new IntegerProperty("Scenery.Scenery.interval", "Change interval:", 5, 1, 30, 1));
+
+        return props;
     }
 
     @Override
