@@ -139,7 +139,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         gbc = new GridBagConstraints();
         gbc.gridy = 1;
         gbc.gridx = 1;
-        gbc.gridheight = 3;
+        gbc.gridheight = 5;
         gbc.anchor = GridBagConstraints.CENTER;
         final ImagePanel imagePanel = new ImagePanel(currentCompanion.getImages().get(0), ImagePanelConfig.createSimpleReadOnlyProperties());
         imagePanel.setPreferredSize(new Dimension(125,125));
@@ -151,6 +151,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10,4,4,0);
         final JTextArea descArea = new JTextArea(currentCompanion.getDescription());
         descArea.setWrapStyleWord(true);
         descArea.setLineWrap(true);
@@ -158,21 +159,25 @@ public class CompanionChooserProperty extends AbstractProperty {
         descArea.setOpaque(false); // Makes background transparent
         descArea.setFocusable(false); // Prevents focus
         descArea.setBorder(null); // Removes border to look like a label
-        //final JLabel descLabel = new JLabel(currentCompanion.getDescription());
         panel.add(descArea, gbc);
 
         gbc.gridy++;
         gbc.weightx = 0.0;
-        gbc.insets = new Insets(20,4,4,0);
+        gbc.insets = new Insets(16,4,2,0);
         final JLabel langLabel = new JLabel("Language: "+currentCompanion.getLanguage());
         langLabel.setFont(langLabel.getFont().deriveFont(Font.PLAIN));
         panel.add(langLabel, gbc);
 
         gbc.gridy++;
-        gbc.insets = new Insets(8,4,4,0);
-        final JLabel label3 = new JLabel("third line");
-        label3.setFont(label3.getFont().deriveFont(Font.PLAIN));
-        panel.add(label3, gbc);
+        gbc.insets = new Insets(4,4,2,0);
+        final JLabel triggerCountLabel = new JLabel("Trigger count: "+currentCompanion.getTriggerCount());
+        triggerCountLabel.setFont(triggerCountLabel.getFont().deriveFont(Font.PLAIN));
+        panel.add(triggerCountLabel, gbc);
+
+        gbc.gridy++;
+        final JLabel totalResponseLabel = new JLabel("Total messages: "+currentCompanion.getTotalResponseCount());
+        totalResponseLabel.setFont(totalResponseLabel.getFont().deriveFont(Font.PLAIN));
+        panel.add(totalResponseLabel, gbc);
 
         gbc.gridy++;
         gbc.weighty = 1.0;
@@ -191,7 +196,9 @@ public class CompanionChooserProperty extends AbstractProperty {
                 Companion c = companions.get(field.getSelectedIndex());
                 imagePanel.setImage(c.getImages().get(0));
                 descArea.setText(c.getDescription());
-                langLabel.setText(c.getLanguage());
+                langLabel.setText("Language: "+c.getLanguage());
+                triggerCountLabel.setText("Trigger count: "+c.getTriggerCount());
+                totalResponseLabel.setText("Total messages: "+c.getTotalResponseCount());
             }
         });
 

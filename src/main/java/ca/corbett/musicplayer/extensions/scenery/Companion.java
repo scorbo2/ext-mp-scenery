@@ -79,7 +79,7 @@ public class Companion {
     private final String description;
     private String language;
     private final List<BufferedImage> images;
-    private List<String> trackChangeMessages;
+    private final List<String> trackChangeMessages;
     private final List<CompanionTrigger> triggers;
     private Font font;
     private Color textColor;
@@ -90,6 +90,8 @@ public class Companion {
         this.description = description;
         this.images = images;
         this.triggers = triggers;
+        this.trackChangeMessages = new ArrayList<>();
+        trackChangeMessages.add(DEFAULT_TRACK_CHANGE_MSG);
     }
 
     protected Companion setLanguage(String language) {
@@ -408,6 +410,14 @@ public class Companion {
     public Color getTextColor() { return textColor; }
     public Color getTextBgColor() { return textBgColor; }
     public List<BufferedImage> getImages() { return new ArrayList<>(images); }
+    public int getTriggerCount() { return triggers.size(); }
+    public int getTotalResponseCount() {
+        int total = trackChangeMessages.size();
+        for (CompanionTrigger trigger : triggers) {
+            total += trigger.getResponses().size();
+        }
+        return total;
+    }
 
     /**
      * Scales an image down proportionally so that the largest of its dimensions matches the given desired size.
