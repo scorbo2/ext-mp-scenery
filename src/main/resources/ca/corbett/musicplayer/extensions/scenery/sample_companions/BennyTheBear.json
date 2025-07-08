@@ -1,0 +1,20 @@
+{
+  "name": "Benny the Bear",
+  "description": "A friendly bear. He likes beer and forests. Test test test test Test test test test Test test test test Test test test test Test test test test Test test test test ",
+  "language": "en",
+  "fontFace": "Monospaced",
+  "textColor": "0xFFFFFF",
+  "textBgColor": "0x000000",
+  "trackChange": [
+    "You are now listening to ${track} by ${artist}."
+  ],
+  "triggers": [
+    {
+      "scenery": ["forest"],
+      "responses": [
+        "I feel right at home among the trees!",
+        "Remember, only you can prevent forest fires!"
+      ]
+    }
+  ]
+}
