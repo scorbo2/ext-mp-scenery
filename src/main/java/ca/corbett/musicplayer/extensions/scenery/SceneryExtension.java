@@ -4,12 +4,16 @@ import ca.corbett.extensions.AppExtensionInfo;
 import ca.corbett.extras.image.ImageUtil;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
+import ca.corbett.extras.properties.ColorProperty;
 import ca.corbett.extras.properties.EnumProperty;
+import ca.corbett.extras.properties.FontProperty;
 import ca.corbett.extras.properties.IntegerProperty;
 import ca.corbett.extras.properties.LabelProperty;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
 import ca.corbett.musicplayer.ui.VisualizationManager;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -83,10 +87,15 @@ public class SceneryExtension extends MusicPlayerExtension {
 
         List<AbstractProperty> props = new ArrayList<>();
 
+        // Companion properties:
         props.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
         props.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", List.of(roboButler, bennyTheBear), 0));
-        props.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always announce when current track changes", true));
+        props.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
         props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
+        props.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
+        props.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
+
+        // Scenery properties:
         props.add(new IntegerProperty("Scenery.Scenery.interval", "Change interval:", 5, 1, 30, 1));
 
         return props;
