@@ -157,7 +157,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         gbc.gridx = 2;
         gbc.gridwidth = 2;
         gbc.gridheight = 1;
-        gbc.weightx = 1.0;
+        gbc.weightx = 0.5;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10,4,4,0);
