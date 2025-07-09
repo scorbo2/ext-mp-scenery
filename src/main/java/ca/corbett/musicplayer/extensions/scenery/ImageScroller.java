@@ -72,9 +72,9 @@ public class ImageScroller {
 
     private ScrollSpeed scrollSpeed;
     private EasingStrength easingStrength;
-    private final BufferedImage image;
-    private int width;
-    private int height;
+    private BufferedImage image;
+    private final int displayWidth;
+    private final int displayHeight;
     private float zoomFactor;
     private int xOffset;
     private int yOffset;
@@ -85,14 +85,16 @@ public class ImageScroller {
     private boolean scaleCalculationsDone;
 
     // Configuration for bounce behavior
-    private float bounceZoneRatio = 0.06f; // What fraction of the scrollable area is the "bounce zone"
+    private float bounceZoneRatio = 0.03f; // What fraction of the scrollable area is the "bounce zone"
     private float minSpeedRatio = 0.1f;   // Minimum speed as a ratio of max speed (0.0 = complete stop, 1.0 = no slowdown)
     private float easingPower = 2.0f;     // Power for easing curve (1.0 = linear, 2.0 = quadratic, 3.0 = cubic, etc.)
 
-    public ImageScroller(BufferedImage image) {
+    public ImageScroller(BufferedImage image, int displayWidth, int displayHeight) {
         this.image = image;
         scrollSpeed = ScrollSpeed.SLOW;
         easingStrength = EasingStrength.QUADRATIC;
+        this.displayWidth = displayWidth;
+        this.displayHeight = displayHeight;
     }
 
     public ScrollSpeed getScrollSpeed() {
@@ -109,6 +111,12 @@ public class ImageScroller {
 
     public void setEasingStrength(EasingStrength easingStrength) {
         this.easingStrength = easingStrength;
+    }
+
+    public void setImage(BufferedImage image) {
+        stop();
+        this.image = image;
+        reset();
     }
 
     private void reset() {
@@ -129,7 +137,7 @@ public class ImageScroller {
      */
     public void renderFrame(Graphics2D g) {
         g.setColor(Color.BLACK);
-        g.fillRect(0, 0, width, height);
+        g.fillRect(0, 0, displayWidth, displayHeight);
 
         // Only do the scale calculations once:
         if (!scaleCalculationsDone) {
@@ -137,7 +145,7 @@ public class ImageScroller {
             yOffset = 0;
             scaleCalculationsDone = true;
             boolean isPortrait = image.getHeight() > image.getWidth();
-            zoomFactor = isPortrait ? (float)width / image.getWidth() : (float)height / image.getHeight();
+            zoomFactor = isPortrait ? (float)displayWidth / image.getWidth() : (float)displayHeight / image.getHeight();
             if (zoomFactor <= 0.0) {
                 zoomFactor = 1;
             }
@@ -152,11 +160,11 @@ public class ImageScroller {
 
             // Wonky case: if we scale it down and it ends up fitting inside the screen,
             // we can't scroll around inside it, so just center it instead:
-            if (imgWidth <= width && imgHeight <= height) {
+            if (imgWidth <= displayWidth && imgHeight <= displayHeight) {
                 xDelta = 0;
                 yDelta = 0;
-                xOffset = (width / 2) - (imgWidth / 2);
-                yOffset = (height / 2) - (imgHeight / 2);
+                xOffset = (displayWidth / 2) - (imgWidth / 2);
+                yOffset = (displayHeight / 2) - (imgHeight / 2);
             }
         }
         int imgWidth = (int)(image.getWidth() * zoomFactor);
@@ -167,8 +175,8 @@ public class ImageScroller {
         float baseSpeed = scrollSpeed.getSpeed();
 
         // Update horizontal movement
-        if (imgWidth > width) {
-            float speedMultiplier = calculateSpeedMultiplier(xOffset, width - imgWidth, width);
+        if (imgWidth > displayWidth) {
+            float speedMultiplier = calculateSpeedMultiplier(xOffset, displayWidth - imgWidth, displayWidth);
             xDelta = xDirection * baseSpeed * speedMultiplier;
 
             // Ensure minimum movement of 1 pixel to prevent animation from getting stuck
@@ -186,15 +194,15 @@ public class ImageScroller {
                 xOffset = 0;
                 xDirection = -1;
             }
-            else if (xOffset <= (width - imgWidth)) {
-                xOffset = width - imgWidth;
+            else if (xOffset <= (displayWidth - imgWidth)) {
+                xOffset = displayWidth - imgWidth;
                 xDirection = 1;
             }
         }
 
         // Update vertical movement
-        if (imgHeight > height) {
-            float speedMultiplier = calculateSpeedMultiplier(yOffset, height - imgHeight, height);
+        if (imgHeight > displayHeight) {
+            float speedMultiplier = calculateSpeedMultiplier(yOffset, displayHeight - imgHeight, displayHeight);
             yDelta = yDirection * baseSpeed * speedMultiplier;
 
             // Ensure minimum movement of 1 pixel to prevent animation from getting stuck
@@ -212,8 +220,8 @@ public class ImageScroller {
                 yOffset = 0;
                 yDirection = -1;
             }
-            else if (yOffset <= (height - imgHeight)) {
-                yOffset = height - imgHeight;
+            else if (yOffset <= (displayHeight - imgHeight)) {
+                yOffset = displayHeight - imgHeight;
                 yDirection = 1;
             }
         }

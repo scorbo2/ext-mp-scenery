@@ -53,6 +53,25 @@ public class SceneryExtension extends MusicPlayerExtension {
         }
     }
 
+    public enum SceneryInterval {
+        TRACK("When current track changes"),
+        TWO("Every two minutes"),
+        FIVE("Every five minutes"),
+        TEN("Every ten minutes"),
+        FIFTEEN("Every fifteen minutes");
+
+        private final String label;
+
+        SceneryInterval(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     public SceneryExtension() {
         try {
             BufferedImage img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
@@ -84,13 +103,6 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public List<AbstractProperty> getConfigProperties() {
-        // TODO:
-        //   current companion (fallback to robobutler if selected doesn't exist)
-        //   popup interval (on track change + some configurable interval)
-        //   scenery change interval
-        //   scenery scroll properties (speed and bounce easing)
-        //
-
         List<AbstractProperty> props = new ArrayList<>();
 
         // Companion properties:
@@ -102,7 +114,8 @@ public class SceneryExtension extends MusicPlayerExtension {
         props.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
 
         // Scenery properties:
-        props.add(new IntegerProperty("Scenery.Scenery.interval", "Change interval:", 5, 1, 30, 1));
+        props.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
+        props.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
 
         return props;
     }

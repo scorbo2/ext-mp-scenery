@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Represents a single scenery image and its associated metadata.
@@ -18,10 +19,12 @@ public class SceneryImage {
 
     private final List<String> tags;
     private final List<BufferedImage> images;
+    private final ThreadLocalRandom rand;
 
     protected SceneryImage(List<BufferedImage> images, List<String> tags) {
         this.images = images;
         this.tags = tags;
+        rand = ThreadLocalRandom.current();
     }
 
     /**
@@ -39,6 +42,10 @@ public class SceneryImage {
      */
     public List<String> getTags() {
         return new ArrayList<>(tags);
+    }
+
+    public BufferedImage getRandomImage() {
+        return images.get(rand.nextInt(images.size()));
     }
 
     /**
