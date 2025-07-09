@@ -15,6 +15,17 @@ TODO: all of this in progress!
 TODO: package up a couple of example companions and some sample scenery. 
       But the main idea is that the user can provide their own (via extension config)
 
+User config:
+
+- specify a directory where custom scenery images and their json metadata live
+- specify a directory where companions live
+- on activate, preload all companions (these should be relatively small and not memory intensive)
+- we can't preload all scenery images as there are potentially a lot of them
+- so, store all companions globally, but load scenery images on demand (or based on some criteria?)
+  - Note: there's currently no list-select form field in swing-extras (issue 60 just added for this)
+  - so until that's addressed in swing-extras, the user might be limited to choosing a single scenery tag
+  - or I guess I could write a custom component here using PanelField...
+
 ## Requirements
 
 MusicPlayer 2.8 or higher.
