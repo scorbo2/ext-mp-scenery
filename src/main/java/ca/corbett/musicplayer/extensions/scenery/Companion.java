@@ -67,7 +67,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Companion {
 
-    public static final int IMAGE_MAX_DIM = 450; // arbitrary size limit for width or height
     public static final String DEFAULT_TRACK_CHANGE_MSG = "You are listening to ${track} by ${artist}.";
     public static final String DEFAULT_LANGUAGE = "en";
     public static final Color DEFAULT_TEXT_BG_COLOR = Color.BLACK;
@@ -128,7 +127,7 @@ public class Companion {
             throw new IOException("Failed to parse JSON file: " + metaFile.getPath(), e);
         }
 
-        return loadCompanion(rootNode, parseImages(metaFile, rootNode));
+        return loadCompanion(rootNode, parseImages(metaFile));
     }
 
     protected static Companion loadCompanion(InputStream inStream, BufferedImage image) throws IOException {
@@ -141,11 +140,10 @@ public class Companion {
             throw new IOException("Failed to parse JSON resource!", e);
         }
 
-        return loadCompanion(rootNode, List.of(scaleImage(image, IMAGE_MAX_DIM)));
-
+        return loadCompanion(rootNode, List.of(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM)));
     }
 
-    public static Companion loadCompanion(JsonNode rootNode, List<BufferedImage> images) throws IOException {
+    protected static Companion loadCompanion(JsonNode rootNode, List<BufferedImage> images) throws IOException {
         if (images == null || images.isEmpty()) {
             throw new IOException("Companion must have at least one image.");
         }
@@ -304,11 +302,11 @@ public class Companion {
         return textBgColor;
     }
 
-    private static List<BufferedImage> parseImages(File metaFile, JsonNode rootNode) throws IOException {
+    private static List<BufferedImage> parseImages(File metaFile) throws IOException {
         // Verify one or more jpg/png images starting with the base file name exist and are readable
-        String baseName = getBaseFileName(metaFile);
+        String baseName = SceneryExtension.getBaseFileName(metaFile);
         String parentDir = metaFile.getParent();
-        List<File> imageFiles = findImageFiles(parentDir, baseName);
+        List<File> imageFiles = SceneryExtension.findImageFiles(parentDir, baseName);
         if (imageFiles.isEmpty()) {
             throw new IOException("No corresponding image files (jpg/png) found starting with: " + baseName);
         }
@@ -321,7 +319,7 @@ public class Companion {
                 if (image == null) {
                     throw new IOException("Failed to load image file: " + imageFile.getPath());
                 }
-                images.add(scaleImage(image, IMAGE_MAX_DIM));
+                images.add(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM));
             } catch (Exception e) {
                 throw new IOException("Error reading image file: " + imageFile.getPath(), e);
             }
@@ -363,46 +361,6 @@ public class Companion {
         }
     }
 
-    private static String getBaseFileName(File file) {
-        String fileName = file.getName();
-        int lastDotIndex = fileName.lastIndexOf('.');
-        return lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
-    }
-
-    private static List<File> findImageFiles(String parentDir, String baseName) {
-        List<File> imageFiles = new ArrayList<>();
-        File directory = new File(parentDir);
-
-        if (!directory.exists() || !directory.isDirectory()) {
-            return imageFiles;
-        }
-
-        String[] extensions = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"};
-        File[] files = directory.listFiles();
-
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()) {
-                    String fileName = file.getName();
-                    String fileBaseName = getBaseFileName(file);
-
-                    // Check if this file starts with our base name
-                    if (fileBaseName.startsWith(baseName)) {
-                        // Check if it has a valid image extension
-                        for (String ext : extensions) {
-                            if (fileName.toLowerCase().endsWith(ext.toLowerCase())) {
-                                imageFiles.add(file);
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return imageFiles;
-    }
-
     public String getName() { return name; }
     public String getDescription() { return description; }
     public String getLanguage() { return language; }
@@ -417,52 +375,6 @@ public class Companion {
             total += trigger.getResponses().size();
         }
         return total;
-    }
-
-    /**
-     * Scales an image down proportionally so that the largest of its dimensions matches the given desired size.
-     * For example, a landscape image will be scaled down so that its with matches maxDimension.
-     * A portrait image will be scaled down so that its height matches maxDimension.
-     * A square image will be scaled down until both width and height equals maxDimension.
-     * This should probably live in swing-extras ImageUtils or such.
-     *
-     * @param image The image to scale.
-     * @param maxDimension The desired largest dimension of the scaled image.
-     * @return The scaled image.
-     */
-    public static BufferedImage scaleImage(BufferedImage image, int maxDimension) {
-        int originalWidth = image.getWidth();
-        int originalHeight = image.getHeight();
-
-        // Check if the image already fits within the max dimension
-        if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
-            return image; // No scaling needed
-        }
-
-        // Calculate scaling factor based on the larger dimension
-        double scaleFactor;
-        if (originalWidth > originalHeight) {
-            // Landscape - scale based on width
-            scaleFactor = (double) maxDimension / originalWidth;
-        } else {
-            // Portrait (or square) - scale based on height
-            scaleFactor = (double) maxDimension / originalHeight;
-        }
-
-        // Calculate new dimensions
-        int newWidth = (int) Math.round(originalWidth * scaleFactor);
-        int newHeight = (int) Math.round(originalHeight * scaleFactor);
-
-        // Create the scaled image
-        BufferedImage scaledImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = scaledImage.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.drawImage(image, 0, 0, newWidth, newHeight, null);
-        g.dispose();
-
-        return scaledImage;
     }
 
 }
