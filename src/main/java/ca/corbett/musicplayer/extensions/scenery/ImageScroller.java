@@ -2,6 +2,7 @@ package ca.corbett.musicplayer.extensions.scenery;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 
 /**
@@ -70,6 +71,8 @@ public class ImageScroller {
         }
     }
 
+    private boolean isRunning;
+
     private ScrollSpeed scrollSpeed;
     private EasingStrength easingStrength;
     private BufferedImage image;
@@ -84,17 +87,17 @@ public class ImageScroller {
     private int yDirection = -1; // -1 for up, +1 for down
     private boolean scaleCalculationsDone;
 
-    // Configuration for bounce behavior
-    private float bounceZoneRatio = 0.03f; // What fraction of the scrollable area is the "bounce zone"
-    private float minSpeedRatio = 0.1f;   // Minimum speed as a ratio of max speed (0.0 = complete stop, 1.0 = no slowdown)
-    private float easingPower = 2.0f;     // Power for easing curve (1.0 = linear, 2.0 = quadratic, 3.0 = cubic, etc.)
+    // Configuration for bounce behavior (we could expose these as props):
+    private final float bounceZoneRatio = 0.06f; // What fraction of the scrollable area is the "bounce zone"
+    private final float minSpeedRatio = 0.1f;   // Minimum speed as a ratio of max speed (0.0 = complete stop, 1.0 = no slowdown)
+    private final float easingPower = 2.0f;     // Power for easing curve (1.0 = linear, 2.0 = quadratic, 3.0 = cubic, etc.)
 
     public ImageScroller(BufferedImage image, int displayWidth, int displayHeight) {
-        this.image = image;
         scrollSpeed = ScrollSpeed.SLOW;
         easingStrength = EasingStrength.QUADRATIC;
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
+        setImage(image);
     }
 
     public ScrollSpeed getScrollSpeed() {
@@ -115,7 +118,36 @@ public class ImageScroller {
 
     public void setImage(BufferedImage image) {
         stop();
-        this.image = image;
+
+        boolean isLandscape = image.getWidth() > image.getHeight();
+        int scaledWidth;
+        int scaledHeight;
+
+        if (isLandscape) {
+            // Scale based on display height - the constraining dimension
+            double scaleFactor = (double) displayHeight / image.getHeight();
+            scaledWidth = (int) Math.round(image.getWidth() * scaleFactor);
+            scaledHeight = displayHeight;
+        } else {
+            // For portrait and square images, scale based on display width
+            double scaleFactor = (double) displayWidth / image.getWidth();
+            scaledWidth = displayWidth;
+            scaledHeight = (int) Math.round(image.getHeight() * scaleFactor);
+        }
+
+        // Create the new scaled image
+        this.image = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = this.image.createGraphics();
+
+        // Enable high-quality rendering
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Draw the original image scaled to the new dimensions
+        g.drawImage(image, 0, 0, scaledWidth, scaledHeight, null);
+        g.dispose();
+
         reset();
     }
 
@@ -126,18 +158,24 @@ public class ImageScroller {
         xDelta = 0;
         yDelta = 0;
         scaleCalculationsDone = false;
+        isRunning = true;
     }
 
     public void stop() {
-        image.flush();
+        if (image != null) {
+            image.flush();
+        }
+        isRunning = false;
     }
 
     /**
      * Renders a single frame of animation and handles scrolling the image by an appropriate amount.
      */
     public void renderFrame(Graphics2D g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, displayWidth, displayHeight);
+        // If we're stopped (e.g. to load the next image), just return:
+        if (! isRunning) {
+            return;
+        }
 
         // Only do the scale calculations once:
         if (!scaleCalculationsDone) {

@@ -5,10 +5,13 @@ import ca.corbett.extras.image.ImageUtil;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
 import ca.corbett.extras.properties.ColorProperty;
+import ca.corbett.extras.properties.DirectoryProperty;
 import ca.corbett.extras.properties.EnumProperty;
 import ca.corbett.extras.properties.FontProperty;
 import ca.corbett.extras.properties.IntegerProperty;
 import ca.corbett.extras.properties.LabelProperty;
+import ca.corbett.extras.properties.PropertiesManager;
+import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
 import ca.corbett.musicplayer.ui.VisualizationManager;
 
@@ -31,6 +34,8 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     public static Companion roboButler;
     public static Companion bennyTheBear;
+
+    public static SceneryLoader sceneryLoader;
 
     private final AppExtensionInfo extInfo;
 
@@ -112,16 +117,23 @@ public class SceneryExtension extends MusicPlayerExtension {
         props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
         props.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
         props.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
+        props.add(new DirectoryProperty("Scenery.Tour guide.externalDir", "Custom tour guides:", true));
 
         // Scenery properties:
         props.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
         props.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
+        props.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
 
         return props;
     }
 
     @Override
     public void onActivate() {
+        PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
+        DirectoryProperty companionsDir = (DirectoryProperty)propsManager.getProperty("Scenery.Tour guide.externalDir");
+        DirectoryProperty sceneryDir = (DirectoryProperty)propsManager.getProperty("Scenery.Scenery.externalDir");
+
+        sceneryLoader = new SceneryLoader(sceneryDir.getDirectory(), List.of()); // TODO built-in scenery
     }
 
     @Override
