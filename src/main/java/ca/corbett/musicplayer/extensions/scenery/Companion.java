@@ -377,4 +377,11 @@ public class Companion {
         return total;
     }
 
+    public BufferedImage getRandomImage() {
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        return images.get(rand.nextInt(images.size()));
+    }
 }

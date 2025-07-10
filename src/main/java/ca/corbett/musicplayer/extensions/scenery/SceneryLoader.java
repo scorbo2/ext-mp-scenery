@@ -26,6 +26,10 @@ public class SceneryLoader {
         this.metaFiles = findMetaFiles(rootDir);
     }
 
+    public File getRootDir() {
+        return rootDir;
+    }
+
     public SceneryImage loadRandom() {
         // Pick a random array index... if it overflows our json file list, take it from the builtins list:
         int index = rand.nextInt(metaFiles.size() + builtIns.size());

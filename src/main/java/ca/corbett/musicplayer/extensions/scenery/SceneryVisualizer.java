@@ -38,6 +38,11 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private int displayWidth;
     private int displayHeight;
 
+    // State vars:
+    boolean isTrackAnnounced;
+    long lastCommentTime;
+    boolean isCommentingNow;
+
     public SceneryVisualizer() {
         super(NAME);
     }
@@ -57,7 +62,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // TODO load image, create ImageScroller and text animator
         textRenderer = new AnimatedTextRenderer(width - 200, 500, "Hello there! This is a test of the text animation code! Just ignore me for now, it will get a lot slicker soon!", 12);
-        imageAnimator = new ImageAnimator(SceneryExtension.roboButler.getImages().get(0), 0, 0, 800, 100, 240, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.05);
+        imageAnimator = new ImageAnimator(companion.getRandomImage(), -500, height - 500, -500, height - 500, 777, 1.0, ImageAnimator.EasingType.EASE_IN, 0.2);
 
         // This might be a bit rude, but let's switch the text overlay off if it's on.
         // (user can always hit "i" to bring it back; we won't muck with it again)
@@ -68,10 +73,6 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
     @Override
     public void renderFrame(Graphics2D g, VisualizationTrackInfo trackInfo) {
-        // TODO remove this, ideally the scenery render should make this obsolete:
-        //g.setColor(Color.BLACK);
-        //g.fillRect(0,0,displayWidth, displayHeight);
-
         // Render background scenery image
         imageScroller.renderFrame(g);
 
@@ -81,9 +82,15 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         // TODO this should have a render() method like the animator and image scroller - standardize these!
         //textRenderer.updateTextAnimation();
 
+        if (! isTrackAnnounced && ! isCommentingNow) {
+            isCommentingNow = true;
+            lastCommentTime = System.currentTimeMillis();
+            imageAnimator.setDestination(100.0, displayHeight - 500);
+            isTrackAnnounced = true;
+        }
+
         // TODO companion movement:
-        //imageAnimator.update();
-        //imageAnimator.render(g);
+        imageAnimator.renderFrame(g);
 
         // Step 4: Render the animated text
         //int leftEdge = 100; // 100px margin on either side

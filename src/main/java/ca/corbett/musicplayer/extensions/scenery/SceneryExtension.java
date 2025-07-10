@@ -35,6 +35,7 @@ public class SceneryExtension extends MusicPlayerExtension {
     public static Companion roboButler;
     public static Companion bennyTheBear;
 
+    public static CompanionLoader companionLoader;
     public static SceneryLoader sceneryLoader;
 
     private final AppExtensionInfo extInfo;
@@ -108,11 +109,25 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public List<AbstractProperty> getConfigProperties() {
+        // I want to put this in onActivate(), but apparently getConfigProps() is invoked first...
+        // TODO: this code fails because we can't load properties while AppConfig is still being populated...
+        //PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
+        //DirectoryProperty companionsDir = (DirectoryProperty)propsManager.getProperty("Scenery.Tour guide.externalDir");
+        //DirectoryProperty sceneryDir = (DirectoryProperty)propsManager.getProperty("Scenery.Scenery.externalDir");
+
+        //sceneryLoader = new SceneryLoader(sceneryDir.getDirectory(), List.of()); // TODO built-in scenery
+        //companionLoader = new CompanionLoader(companionsDir.getDirectory(), List.of(roboButler, bennyTheBear));
+        // TODO hack hack hack
+        sceneryLoader = new SceneryLoader(new File("/home/scorbett/Pictures/ai_scenery/"), List.of()); // TODO built-in scenery
+        companionLoader = new CompanionLoader(new File("/home/scorbett/Pictures/ai_avatars/"), List.of(roboButler, bennyTheBear));
+
+
+        // Now we can build and return our props:
         List<AbstractProperty> props = new ArrayList<>();
 
         // Companion properties:
         props.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
-        props.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", List.of(roboButler, bennyTheBear), 0));
+        props.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
         props.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
         props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
         props.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
@@ -129,11 +144,6 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public void onActivate() {
-        PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
-        DirectoryProperty companionsDir = (DirectoryProperty)propsManager.getProperty("Scenery.Tour guide.externalDir");
-        DirectoryProperty sceneryDir = (DirectoryProperty)propsManager.getProperty("Scenery.Scenery.externalDir");
-
-        sceneryLoader = new SceneryLoader(sceneryDir.getDirectory(), List.of()); // TODO built-in scenery
     }
 
     @Override

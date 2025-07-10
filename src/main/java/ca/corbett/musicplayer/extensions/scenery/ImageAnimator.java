@@ -85,58 +85,9 @@ public class ImageAnimator {
 
     /**
      * Updates the image position based on elapsed time and easing function.
-     * Call this method once per frame in your animation loop.
      */
     public void update() {
-        if (movementComplete) {
-            return;
-        }
 
-        long currentTime = System.nanoTime();
-        double deltaTime = (currentTime - lastUpdateTime) / 1_000_000_000.0; // Convert to seconds
-        lastUpdateTime = currentTime;
-
-        // Calculate current distance from start
-        double currentDistanceFromStart = Math.sqrt(
-            (currentX - startX) * (currentX - startX) +
-                (currentY - startY) * (currentY - startY)
-        );
-
-        // Calculate progress (0.0 to 1.0)
-        double progress = totalDistance > 0 ? currentDistanceFromStart / totalDistance : 1.0;
-
-        // Apply easing function with zones to get speed multiplier
-        double speedMultiplier = calculateEasingWithZones(progress);
-
-        // Calculate movement for this frame
-        double frameDistance = maxSpeed * speedMultiplier * deltaTime;
-
-        // Guarantee minimum movement of 1 pixel per frame (when not at destination)
-        double remainingDistance = Math.sqrt(
-            (destX - currentX) * (destX - currentX) +
-                (destY - currentY) * (destY - currentY)
-        );
-
-        if (remainingDistance > 0) {
-            // Ensure we move at least 1 pixel per frame, but not more than remaining distance
-            frameDistance = Math.max(frameDistance, 1.0);
-            frameDistance = Math.min(frameDistance, remainingDistance);
-        }
-
-        // Calculate new position
-        double newX = currentX + directionX * frameDistance;
-        double newY = currentY + directionY * frameDistance;
-
-        // Check if we've reached the destination
-        if (frameDistance >= remainingDistance || remainingDistance <= 0.5) {
-            // We've reached the destination (within half a pixel)
-            currentX = destX;
-            currentY = destY;
-            movementComplete = true;
-        } else {
-            currentX = newX;
-            currentY = newY;
-        }
     }
 
     private double calculateEasingWithZones(double progress) {
@@ -202,11 +153,60 @@ public class ImageAnimator {
     }
 
     /**
-     * Renders the image at its current position.
+     * Updates movement of the image and renders it at its new position.
      */
-    public void render(Graphics2D g) {
+    public void renderFrame(Graphics2D g) {
+        if (! movementComplete) {
+            long currentTime = System.nanoTime();
+            double deltaTime = (currentTime - lastUpdateTime) / 1_000_000_000.0; // Convert to seconds
+            lastUpdateTime = currentTime;
+
+            // Calculate current distance from start
+            double currentDistanceFromStart = Math.sqrt(
+                (currentX - startX) * (currentX - startX) +
+                    (currentY - startY) * (currentY - startY)
+            );
+
+            // Calculate progress (0.0 to 1.0)
+            double progress = totalDistance > 0 ? currentDistanceFromStart / totalDistance : 1.0;
+
+            // Apply easing function with zones to get speed multiplier
+            double speedMultiplier = calculateEasingWithZones(progress);
+
+            // Calculate movement for this frame
+            double frameDistance = maxSpeed * speedMultiplier * deltaTime;
+
+            // Guarantee minimum movement of 1 pixel per frame (when not at destination)
+            double remainingDistance = Math.sqrt(
+                (destX - currentX) * (destX - currentX) +
+                    (destY - currentY) * (destY - currentY)
+            );
+
+            if (remainingDistance > 0) {
+                // Ensure we move at least 1 pixel per frame, but not more than remaining distance
+                frameDistance = Math.max(frameDistance, 1.0);
+                frameDistance = Math.min(frameDistance, remainingDistance);
+            }
+
+            // Calculate new position
+            double newX = currentX + directionX * frameDistance;
+            double newY = currentY + directionY * frameDistance;
+
+            // Check if we've reached the destination
+            if (frameDistance >= remainingDistance || remainingDistance <= 0.5) {
+                // We've reached the destination (within half a pixel)
+                currentX = destX;
+                currentY = destY;
+                movementComplete = true;
+            }
+            else {
+                currentX = newX;
+                currentY = newY;
+            }
+        }
+
         if (image != null) {
-            g.drawImage(image, (int) Math.round(currentX), (int) Math.round(currentY), null);
+            g.drawImage(image, (int)Math.round(currentX), (int)Math.round(currentY), null);
         }
     }
 
