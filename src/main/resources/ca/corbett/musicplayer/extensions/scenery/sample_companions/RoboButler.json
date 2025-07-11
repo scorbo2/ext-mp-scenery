@@ -3,7 +3,8 @@
   "description": "A helpful robot. He may or may not be homicidal.",
   "language": "en",
   "fontFace": "Monospaced",
-  "textColor": "0xFFFFFF",
+  "fontSize": 36,
+  "textColor": "0x00FF00",
   "textBgColor": "0x000000",
   "trackChange": [
     "You are now listening to ${track} by ${artist}.",

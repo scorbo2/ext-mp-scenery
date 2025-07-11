@@ -57,6 +57,9 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     boolean isCommentingNow;
     String artist;
     String track;
+    Font effectiveFont;
+    Color effectiveTextFg;
+    Color effectiveTextBg;
 
     public SceneryVisualizer() {
         super(NAME);
@@ -85,12 +88,12 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         imageScroller = new ImageScroller(SceneryExtension.sceneryLoader.loadRandom().getRandomImage(), width, height); // TODO we need a handle on the current SceneryImage to get its tags later
 
         // Text window:
-        textRenderer = new AnimatedTextRenderer(textWidth, 400, "", 12);
+        textRenderer = new AnimatedTextRenderer(textWidth, 400, "", 12, effectiveFont, effectiveTextFg, effectiveTextBg);
         textAnimator = new ImageAnimator(textRenderer.getBuffer(), textX, displayHeight + 100, textX, displayHeight + 100, 777, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.2);
         textAnimator.setTransparency(textOpacity);
 
         // Companion:
-        companionAnimator = new ImageAnimator(companion.getRandomImage(), -500, height - 500, -100, height - 500, 777, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.2);
+        companionAnimator = new ImageAnimator(companion.getRandomImage(effectiveTextBg), -500, height - 500, -100, height - 500, 777, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.2);
 
         // This might be a bit rude, but let's switch the text overlay off if it's on.
         // (user can always hit "i" to bring it back; we won't muck with it again)
@@ -121,7 +124,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null) {
             isCommentingNow = true;
             lastCommentTime = System.currentTimeMillis();
-            companionAnimator.setImage(companion.getRandomImage());
+            companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
             companionAnimator.setDestination(MARGIN, displayHeight - 500);
             isTrackAnnounced = true;
 
@@ -136,7 +139,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         else if (! isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > commentaryInterval.getIntervalMs()) {
             isCommentingNow = true;
             lastCommentTime = System.currentTimeMillis();
-            companionAnimator.setImage(companion.getRandomImage());
+            companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
             companionAnimator.setDestination(MARGIN, displayHeight - 500);
 
             String msg = companion.getResponse(artist, track, List.of()); // TODO scenery tags
@@ -197,6 +200,33 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         defaultBg = ((FontProperty)defaultStyleProp).getBgColor();
         defaultFg = ((FontProperty)defaultStyleProp).getTextColor();
         textOpacity = (float)((DecimalProperty)transparencyProp).getValue();
+
+        Font font = defaultFont;
+        log.info("defaultFont size is "+font.getSize());
+        Color fg = defaultFg;
+        Color bg = defaultBg;
+
+        // If overrides are enabled and this companion supplies them, use them:
+        if (allowStyleOverride && companion.getFont() != null) {
+            font = companion.getFont();
+            log.info("Overridden font size is "+font.getSize());
+        }
+        if (allowStyleOverride && companion.getTextColor() != null) {
+            fg = companion.getTextColor();
+        }
+        if (allowStyleOverride && companion.getTextBgColor() != null) {
+            bg = companion.getTextBgColor();
+        }
+        effectiveFont = font;
+        effectiveTextFg = fg;
+        effectiveTextBg = bg;
+
+        // Update the text renderer if it has been created:
+        if (textRenderer != null) {
+            textRenderer.setFont(effectiveFont);
+            textRenderer.setTextColor(effectiveTextFg);
+            textRenderer.setBackgroundColor(effectiveTextBg);
+        }
 
         // We can't use instanceof to pre-check these class casts because of type erasure, but eh, it'll be fine.
         //noinspection unchecked

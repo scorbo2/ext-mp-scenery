@@ -69,10 +69,8 @@ public class Companion {
 
     public static final String DEFAULT_TRACK_CHANGE_MSG = "You are listening to ${track} by ${artist}.";
     public static final String DEFAULT_LANGUAGE = "en";
-    public static final Color DEFAULT_TEXT_BG_COLOR = Color.BLACK;
-    public static final Color DEFAULT_TEXT_COLOR = Color.GREEN;
-    public static final String DEFAULT_FONT = Font.SANS_SERIF;
-    public static final int DEFAULT_FONT_SIZE = 18;
+    public static final int DEFAULT_FONT_SIZE = 36;
+    public static final int BORDER_WIDTH = 4;
 
     private final String name;
     private final String description;
@@ -145,7 +143,7 @@ public class Companion {
             throw new IOException("Failed to parse JSON resource!", e);
         }
 
-        return loadCompanion(rootNode, List.of(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM)));
+        return loadCompanion(rootNode, List.of(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH*2)));
     }
 
     protected static Companion loadCompanion(JsonNode rootNode, List<BufferedImage> images) throws IOException {
@@ -275,7 +273,7 @@ public class Companion {
     }
 
     private static Font parseFont(JsonNode rootNode) {
-        String fontFace = DEFAULT_FONT;
+        String fontFace = null;
         if (rootNode.has("fontFace")) {
             fontFace = rootNode.get("fontFace").asText();
         }
@@ -290,11 +288,11 @@ public class Companion {
             }
         }
 
-        return new Font(fontFace, Font.PLAIN, fontSize);
+        return (fontFace != null) ? new Font(fontFace, Font.PLAIN, fontSize) : null;
     }
 
     private static Color parseTextColor(JsonNode rootNode) throws IOException {
-        Color textColor = DEFAULT_TEXT_COLOR;
+        Color textColor = null;
         if (rootNode.has("textColor")) {
             textColor = parseRgbString(rootNode.get("textColor").asText());
         }
@@ -302,7 +300,7 @@ public class Companion {
     }
 
     private static Color parseTextBgColor(JsonNode rootNode) throws IOException {
-        Color textBgColor = DEFAULT_TEXT_BG_COLOR;
+        Color textBgColor = null;
         if (rootNode.has("textBgColor")) {
             textBgColor = parseRgbString(rootNode.get("textBgColor").asText());
         }
@@ -326,12 +324,10 @@ public class Companion {
                 if (image == null) {
                     throw new IOException("Failed to load image file: " + imageFile.getPath());
                 }
-                images.add(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM));
+                images.add(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2));
             } catch (Exception e) {
                 throw new IOException("Error reading image file: " + imageFile.getPath(), e);
             }
-
-            // TODO add a border maybe?
         }
 
         return images;
@@ -399,12 +395,22 @@ public class Companion {
         return total;
     }
 
-    public BufferedImage getRandomImage() {
+    public BufferedImage getRandomImage(Color borderColor) {
         if (images == null || images.isEmpty()) {
             return null;
         }
         ThreadLocalRandom rand = ThreadLocalRandom.current();
-        return images.get(rand.nextInt(images.size()));
+        BufferedImage companionImage = images.get(rand.nextInt(images.size()));
+
+        BufferedImage image = new BufferedImage(companionImage.getWidth() + BORDER_WIDTH * 2,
+                                                companionImage.getHeight() + BORDER_WIDTH * 2,
+                                                BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        g.setColor(borderColor);
+        g.fillRect(0,0,image.getWidth(),image.getHeight());
+        g.drawImage(companionImage, (image.getWidth() - companionImage.getWidth()) / 2, (image.getHeight() - companionImage.getHeight()) / 2, null);
+        g.dispose();
+        return image;
     }
 
     public String getRandomTrackChangeMessage() {

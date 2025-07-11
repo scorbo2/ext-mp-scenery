@@ -2,9 +2,10 @@
   "name": "Benny the Bear",
   "description": "A friendly bear. He likes beer and forests.",
   "language": "en",
-  "fontFace": "Monospaced",
+  "fontFace": "SansSerif",
+  "fontSize": 36,
   "textColor": "0xFFFFFF",
-  "textBgColor": "0x000000",
+  "textBgColor": "0x0000FF",
   "trackChange": [
     "You are now listening to ${track} by ${artist}."
   ],
