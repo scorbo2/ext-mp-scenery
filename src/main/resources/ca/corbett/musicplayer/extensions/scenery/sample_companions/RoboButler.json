@@ -6,7 +6,9 @@
   "textColor": "0xFFFFFF",
   "textBgColor": "0x000000",
   "trackChange": [
-    "You are now listening to ${track} by ${artist}."
+    "You are now listening to ${track} by ${artist}.",
+    "This track is called ${track}. The artist is ${artist}",
+    "You seem to enjoy ${artist}. This track is called ${track}"
   ],
   "triggers": [
     {

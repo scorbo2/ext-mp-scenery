@@ -5,6 +5,7 @@ import ca.corbett.extras.image.ImageUtil;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
 import ca.corbett.extras.properties.ColorProperty;
+import ca.corbett.extras.properties.DecimalProperty;
 import ca.corbett.extras.properties.DirectoryProperty;
 import ca.corbett.extras.properties.EnumProperty;
 import ca.corbett.extras.properties.FontProperty;
@@ -41,21 +42,27 @@ public class SceneryExtension extends MusicPlayerExtension {
     private final AppExtensionInfo extInfo;
 
     public enum CommentaryInterval {
-        ONE("Every minute"),
-        TWO("Every two minutes"),
-        FIVE("Every five minutes"),
-        TEN("Every ten minutes"),
-        FIFTEEN("Every fifteen minutes");
+        ONE("Every minute", 60 * 1000),
+        TWO("Every two minutes", 120 * 1000),
+        FIVE("Every five minutes", 300 * 1000),
+        TEN("Every ten minutes", 600 * 1000),
+        FIFTEEN("Every fifteen minutes", 900 * 1000);
 
         private final String label;
+        private final int intervalMs;
 
-        CommentaryInterval(String label) {
+        CommentaryInterval(String label, int ms) {
             this.label = label;
+            this.intervalMs = ms;
         }
 
         @Override
         public String toString() {
             return label;
+        }
+
+        public int getIntervalMs() {
+            return intervalMs;
         }
     }
 
@@ -132,6 +139,7 @@ public class SceneryExtension extends MusicPlayerExtension {
         props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
         props.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
         props.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
+        props.add(new DecimalProperty("Scenery.Tour guide.transparency", "Text opacity:", 1.0, 0.1, 1.0, 0.05));
         props.add(new DirectoryProperty("Scenery.Tour guide.externalDir", "Custom tour guides:", true));
 
         // Scenery properties:

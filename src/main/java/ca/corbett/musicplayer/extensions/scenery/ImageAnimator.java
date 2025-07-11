@@ -1,4 +1,5 @@
 package ca.corbett.musicplayer.extensions.scenery;
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
@@ -10,6 +11,7 @@ public class ImageAnimator {
     private double maxSpeed;
     private double easingStrength;
     private double easingZonePercentage; // Percentage of travel distance for easing zones
+    private float transparency;
 
     private long lastUpdateTime;
     private boolean movementComplete;
@@ -61,6 +63,7 @@ public class ImageAnimator {
         this.easingStrength = Math.max(1.0, easingStrength);
         this.easingType = easingType;
         this.easingZonePercentage = Math.max(0.0, Math.min(0.5, easingZonePercentage));
+        this.transparency = 1.0f;
 
         this.lastUpdateTime = System.nanoTime();
         this.movementComplete = false;
@@ -81,13 +84,6 @@ public class ImageAnimator {
             this.directionY = 0;
             this.movementComplete = true;
         }
-    }
-
-    /**
-     * Updates the image position based on elapsed time and easing function.
-     */
-    public void update() {
-
     }
 
     private double calculateEasingWithZones(double progress) {
@@ -206,7 +202,17 @@ public class ImageAnimator {
         }
 
         if (image != null) {
+            // Render with transparency if requested:
+            if (transparency < 1.0f) {
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, transparency));
+            }
+
             g.drawImage(image, (int)Math.round(currentX), (int)Math.round(currentY), null);
+
+            // Clear transparency setting when finished:
+            if (transparency < 1.0f) {
+                g.setComposite(AlphaComposite.Clear);
+            }
         }
     }
 
@@ -316,5 +322,13 @@ public class ImageAnimator {
      */
     public double getEasingZonePercentage() {
         return easingZonePercentage;
+    }
+
+    public float getTransparency() {
+        return transparency;
+    }
+
+    public void setTransparency(float transparency) {
+        this.transparency = transparency;
     }
 }

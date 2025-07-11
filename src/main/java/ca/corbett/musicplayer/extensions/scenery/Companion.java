@@ -109,6 +109,11 @@ public class Companion {
         return this;
     }
 
+    protected Companion setTrackChangeMessages(List<String> trackChangeMessages) {
+        this.trackChangeMessages.addAll(trackChangeMessages);
+        return this;
+    }
+
     /**
      * Populate and return a new Companion instance using data from the given file.
      */
@@ -155,12 +160,14 @@ public class Companion {
         Font font = parseFont(rootNode);
         Color textColor = parseTextColor(rootNode);
         Color textBgColor = parseTextBgColor(rootNode);
+        List<String> trackChangeMessages = parseTrackChangeMessages(rootNode);
         List<CompanionTrigger> triggers = parseTriggers(rootNode);
 
         return new Companion(name, description, images, triggers)
             .setLanguage(language)
             .setFont(font)
-            .setTextColors(textColor, textBgColor);
+            .setTextColors(textColor, textBgColor)
+            .setTrackChangeMessages(trackChangeMessages);
     }
 
     public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
@@ -330,8 +337,23 @@ public class Companion {
         return images;
     }
 
+    private static List<String> parseTrackChangeMessages(JsonNode rootNode) throws IOException {
+        List<String> messages = new ArrayList<>();
+        if (rootNode.has("trackChange")) {
+            JsonNode changeNode = rootNode.get("trackChange");
+            if (changeNode.isArray()) {
+                for (JsonNode node : changeNode) {
+                    String msg = node.asText();
+                    if (msg != null && ! msg.isEmpty()) {
+                        messages.add(msg);
+                    }
+                }
+            }
+        }
+        return messages;
+    }
+
     private static List<CompanionTrigger> parseTriggers(JsonNode rootNode) throws IOException {
-        // Parse triggers
         List<CompanionTrigger> triggers = new ArrayList<>();
         if (rootNode.has("triggers")) {
             JsonNode triggersNode = rootNode.get("triggers");
@@ -351,7 +373,7 @@ public class Companion {
 
     private static Color parseRgbString(String rgbString) throws IOException {
         if (rgbString == null || rgbString.length() != 8 || ! rgbString.startsWith("0x")) {
-            throw new IOException("Color specifies must be in the format 0xRRGGBB");
+            throw new IOException("Color specifiers must be in the format 0xRRGGBB");
         }
         try {
             return new Color(Long.decode(rgbString).intValue());
@@ -383,5 +405,10 @@ public class Companion {
         }
         ThreadLocalRandom rand = ThreadLocalRandom.current();
         return images.get(rand.nextInt(images.size()));
+    }
+
+    public String getRandomTrackChangeMessage() {
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        return trackChangeMessages.get(rand.nextInt(trackChangeMessages.size()));
     }
 }
