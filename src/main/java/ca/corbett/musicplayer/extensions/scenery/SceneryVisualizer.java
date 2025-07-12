@@ -75,6 +75,9 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         // Text width is the display width minus a margin on either side minus the width of the companion image:
         textWidth = displayWidth - SceneryExtension.IMAGE_MAX_DIM - (MARGIN*2);
 
+        // I want a slightly larger margin on the right side:
+        textWidth -= 50;
+
         // Text left edge is just to the right of the companion image:
         textX = MARGIN + SceneryExtension.IMAGE_MAX_DIM;
 
@@ -88,7 +91,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         imageScroller = new ImageScroller(SceneryExtension.sceneryLoader.loadRandom().getRandomImage(), width, height); // TODO we need a handle on the current SceneryImage to get its tags later
 
         // Text window:
-        textRenderer = new AnimatedTextRenderer(textWidth, 400, "", 12, effectiveFont, effectiveTextFg, effectiveTextBg);
+        textRenderer = new AnimatedTextRenderer(textWidth, 350, "", 12, effectiveFont, effectiveTextFg, effectiveTextBg);
         textAnimator = new ImageAnimator(textRenderer.getBuffer(), textX, displayHeight + 100, textX, displayHeight + 100, 777, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.2);
         textAnimator.setTransparency(textOpacity);
 
@@ -125,14 +128,14 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             isCommentingNow = true;
             lastCommentTime = System.currentTimeMillis();
             companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
-            companionAnimator.setDestination(MARGIN, displayHeight - 500);
+            companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
             isTrackAnnounced = true;
 
             String msg = companion.getRandomTrackChangeMessage();
             msg = msg.replaceAll("\\$\\{artist}", artist);
             msg = msg.replaceAll("\\$\\{track}", track);
             textRenderer.setText(msg);
-            textAnimator.setDestination(textX, displayHeight - 500);
+            textAnimator.setDestination(textX, displayHeight - 450);
         }
 
         // Look for a conversation trigger:
@@ -140,7 +143,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             isCommentingNow = true;
             lastCommentTime = System.currentTimeMillis();
             companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
-            companionAnimator.setDestination(MARGIN, displayHeight - 500);
+            companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
 
             String msg = companion.getResponse(artist, track, List.of()); // TODO scenery tags
             if (msg == null) {
@@ -148,7 +151,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
                 msg = "I have nothing to say...";
             }
             textRenderer.setText(msg);
-            textAnimator.setDestination(textX, displayHeight - 500);
+            textAnimator.setDestination(textX, displayHeight - 450);
         }
 
         // Remove companion if a message has been up for a certain time:
