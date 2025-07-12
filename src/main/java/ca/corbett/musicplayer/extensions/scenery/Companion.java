@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -78,6 +79,7 @@ public class Companion {
     private final List<BufferedImage> images;
     private final List<String> trackChangeMessages;
     private final List<CompanionTrigger> triggers;
+    private final List<String> idleChatter;
     private Font font;
     private Color textColor;
     private Color textBgColor;
@@ -88,6 +90,7 @@ public class Companion {
         this.images = images;
         this.triggers = triggers;
         this.trackChangeMessages = new ArrayList<>();
+        this.idleChatter = new ArrayList<>();
         trackChangeMessages.add(DEFAULT_TRACK_CHANGE_MSG);
     }
 
@@ -109,6 +112,11 @@ public class Companion {
 
     protected Companion setTrackChangeMessages(List<String> trackChangeMessages) {
         this.trackChangeMessages.addAll(trackChangeMessages);
+        return this;
+    }
+
+    protected Companion setIdleChatter(List<String> idleChatter) {
+        this.idleChatter.addAll(idleChatter);
         return this;
     }
 
@@ -160,12 +168,14 @@ public class Companion {
         Color textBgColor = parseTextBgColor(rootNode);
         List<String> trackChangeMessages = parseTrackChangeMessages(rootNode);
         List<CompanionTrigger> triggers = parseTriggers(rootNode);
+        List<String> idleChatter = parseIdleChatter(rootNode);
 
         return new Companion(name, description, images, triggers)
             .setLanguage(language)
             .setFont(font)
             .setTextColors(textColor, textBgColor)
-            .setTrackChangeMessages(trackChangeMessages);
+            .setTrackChangeMessages(trackChangeMessages)
+            .setIdleChatter(idleChatter);
     }
 
     public boolean hasTrigger(String artistName, String trackTitle, List<String> sceneryTags) {
@@ -367,6 +377,19 @@ public class Companion {
         return triggers;
     }
 
+    private static List<String> parseIdleChatter(JsonNode rootNode) throws IOException {
+        List<String> messages = new ArrayList<>();
+        if (rootNode.has("idleChatter")) {
+            JsonNode node = rootNode.get("idleChatter");
+            if (node.isArray()) {
+                for (JsonNode chatterNode : node) {
+                    messages.add(chatterNode.asText());
+                }
+            }
+        }
+        return messages;
+    }
+
     private static Color parseRgbString(String rgbString) throws IOException {
         if (rgbString == null || rgbString.length() != 8 || ! rgbString.startsWith("0x")) {
             throw new IOException("Color specifiers must be in the format 0xRRGGBB");
@@ -416,5 +439,10 @@ public class Companion {
     public String getRandomTrackChangeMessage() {
         ThreadLocalRandom rand = ThreadLocalRandom.current();
         return trackChangeMessages.get(rand.nextInt(trackChangeMessages.size()));
+    }
+
+    public String getRandomIdleChatter() {
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        return idleChatter.get(rand.nextInt(idleChatter.size()));
     }
 }

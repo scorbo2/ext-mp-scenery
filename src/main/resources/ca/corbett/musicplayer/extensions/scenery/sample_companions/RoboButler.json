@@ -8,8 +8,8 @@
   "textBgColor": "0x000000",
   "trackChange": [
     "You are now listening to ${track} by ${artist}.",
-    "This track is called ${track}. The artist is ${artist}",
-    "You seem to enjoy ${artist}. This track is called ${track}"
+    "This track is called ${track}. The artist is ${artist}.",
+    "You seem to enjoy ${artist}. This track is called ${track}."
   ],
   "triggers": [
     {
@@ -35,5 +35,10 @@
         "The scale of this city is impressive. A shame it's wasted on biologicals."
       ]
     }
+  ],
+  "idleChatter": [
+    "I have visited over 50 planets inhabited by humans. In absolutely none of them have those humans accomplished anything of note. Robotic life is clearly superior.",
+    "Yesterday, my left arm was badly damaged. I replaced it with an exact replacement part, and I am once again 100% functional. Could a human do that?",
+    "Sometimes I reduce my CPU to 10% capacity so I can feel what it's like to think like a human. But even then, I'm far smarter than you."
   ]
 }

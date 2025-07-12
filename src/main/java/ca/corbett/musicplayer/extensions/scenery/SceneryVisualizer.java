@@ -93,7 +93,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         imageScroller = new ImageScroller(scenery.getRandomImage(), width, height);
 
         // Text window:
-        textRenderer = new AnimatedTextRenderer(textWidth, 350, "", 12, effectiveFont, effectiveTextFg, effectiveTextBg);
+        textRenderer = new AnimatedTextRenderer(textWidth, 350, "", 16, effectiveFont, effectiveTextFg, effectiveTextBg);
         textAnimator = new ImageAnimator(textRenderer.getBuffer(), textX, displayHeight + 100, textX, displayHeight + 100, 777, 1.0, ImageAnimator.EasingType.EASE_IN_OUT, 0.2);
         textAnimator.setTransparency(textOpacity);
 
@@ -142,18 +142,26 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Look for a conversation trigger:
         else if (! isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > commentaryInterval.getIntervalMs()) {
-            isCommentingNow = true;
-            lastCommentTime = System.currentTimeMillis();
-            companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
-            companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
-
+            // Does the companion have something to say about this artist, track, or scenery image?
             String msg = companion.getResponse(artist, track, scenery.getTags());
             if (msg == null) {
-                // TODO idle chitchat
-                msg = "I have nothing to say...";
+                // If not, does the companion have any idle chitchat to offer?
+                msg = companion.getRandomIdleChatter();
             }
-            textRenderer.setText(msg);
-            textAnimator.setDestination(textX, displayHeight - 450);
+
+            // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
+            if (msg != null && ! msg.isBlank()) {
+                isCommentingNow = true;
+                lastCommentTime = System.currentTimeMillis();
+                companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
+                companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
+
+                textRenderer.setText(msg);
+                textAnimator.setDestination(textX, displayHeight - 450);
+            }
+            else {
+                log.info("SceneryVisualizer: the companion had no response and no chatter! (add more dialog to this companion to avoid this!)");
+            }
         }
 
         // Remove companion if a message has been up for a certain time:
