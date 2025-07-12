@@ -35,6 +35,7 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     public static Companion roboButler;
     public static Companion bennyTheBear;
+    private List<Companion> builtInCompanions;
 
     public static CompanionLoader companionLoader;
     public static SceneryLoader sceneryLoader;
@@ -99,6 +100,9 @@ public class SceneryExtension extends MusicPlayerExtension {
                 "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.json"), img);
             log.info("Loaded Benny the Bear!");
 
+            builtInCompanions = new ArrayList<>();
+            builtInCompanions.add(roboButler);
+            builtInCompanions.add(bennyTheBear);
         }
         catch (IOException ioe) {
             log.log(Level.SEVERE, "Can't load extension resources!", ioe);
@@ -116,18 +120,13 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public List<AbstractProperty> getConfigProperties() {
-        // I want to put this in onActivate(), but apparently getConfigProps() is invoked first...
-        // TODO: this code fails because we can't load properties while AppConfig is still being populated...
-        //PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
-        //DirectoryProperty companionsDir = (DirectoryProperty)propsManager.getProperty("Scenery.Tour guide.externalDir");
-        //DirectoryProperty sceneryDir = (DirectoryProperty)propsManager.getProperty("Scenery.Scenery.externalDir");
-
-        //sceneryLoader = new SceneryLoader(sceneryDir.getDirectory(), List.of()); // TODO built-in scenery
-        //companionLoader = new CompanionLoader(companionsDir.getDirectory(), List.of(roboButler, bennyTheBear));
-        // TODO hack hack hack
-        sceneryLoader = new SceneryLoader(new File("/home/scorbett/Pictures/ai_scenery/"), List.of()); // TODO built-in scenery
-        companionLoader = new CompanionLoader(new File("/home/scorbett/Pictures/ai_avatars/"), List.of(roboButler, bennyTheBear));
-
+        // Peek the values of our external load dirs:
+        String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
+        String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
+        log.info("externalDirScenery="+externalDirScenery);
+        log.info("externalDirCompanions="+externalDirCompanions);
+        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), List.of()); // TODO built-in scenery
+        companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
 
         // Now we can build and return our props:
         List<AbstractProperty> props = new ArrayList<>();
