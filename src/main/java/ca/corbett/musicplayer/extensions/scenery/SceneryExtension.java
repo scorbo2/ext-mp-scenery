@@ -155,8 +155,6 @@ public class SceneryExtension extends MusicPlayerExtension {
         // Peek the values of our external load dirs so we can initialize properly:
         String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
         String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
-        log.info("externalDirScenery="+externalDirScenery);
-        log.info("externalDirCompanions="+externalDirCompanions);
         sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), List.of()); // TODO built-in scenery
         companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
 
