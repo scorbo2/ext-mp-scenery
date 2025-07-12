@@ -17,6 +17,8 @@ TODO: package up a couple of example companions and some sample scenery.
 
 TODO: Screenshots! Lots of screenshots!
 
+TODO: example json is provided in jar resources, but it should have an overview here
+
 User config:
 
 - specify a directory where custom scenery images and their json metadata live
