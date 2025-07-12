@@ -28,8 +28,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     /** A pixel margin to the left and right of the companion and text area **/
     private static final int MARGIN = 100;
 
-    /** How long, in milliseconds, to leave a message up (TODO maybe it should be based on text length?) **/
-    private static final int COMMENT_DISPLAY_TIME = 10000;
+    /** How long, in milliseconds, to leave a message up **/
+    private static final int COMMENT_DISPLAY_TIME = 8888;
 
     private ImageScroller imageScroller;
     private AnimatedTextRenderer textRenderer;
@@ -38,6 +38,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
     // Companion props:
     private Companion companion;
+    private SceneryImage scenery;
     private boolean announceTrackChange;
     private boolean allowStyleOverride;
     private Font defaultFont;
@@ -88,7 +89,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         reloadUI();
 
         // Background:
-        imageScroller = new ImageScroller(SceneryExtension.sceneryLoader.loadRandom().getRandomImage(), width, height); // TODO we need a handle on the current SceneryImage to get its tags later
+        scenery = SceneryExtension.sceneryLoader.loadRandom();
+        imageScroller = new ImageScroller(scenery.getRandomImage(), width, height);
 
         // Text window:
         textRenderer = new AnimatedTextRenderer(textWidth, 350, "", 12, effectiveFont, effectiveTextFg, effectiveTextBg);
@@ -145,7 +147,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
             companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
 
-            String msg = companion.getResponse(artist, track, List.of()); // TODO scenery tags
+            String msg = companion.getResponse(artist, track, scenery.getTags());
             if (msg == null) {
                 // TODO idle chitchat
                 msg = "I have nothing to say...";

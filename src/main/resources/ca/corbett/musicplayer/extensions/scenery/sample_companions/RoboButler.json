@@ -18,6 +18,22 @@
         "Ah yes, when my kind conquers humans, this is what your world shall look like.",
         "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point."
       ]
+    },
+    {
+      "scenery": ["sci-fi"],
+      "responses": [
+        "This place is interesting to me. Let's stay a while.",
+        "An interesting display of technology.",
+        "Ah, I would like to study this technology in more detail!"
+      ]
+    },
+    {
+      "scenery": ["sci-fi", "cityscape"],
+      "responses": [
+        "I should like to examine the power source for a city this size. We could probably learn much by studying it.",
+        "To think, all this was built to sustain primitive, ungrateful biological lifeforms.",
+        "The scale of this city is impressive. A shame it's wasted on biologicals."
+      ]
     }
   ]
 }
