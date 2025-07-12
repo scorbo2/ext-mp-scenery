@@ -42,6 +42,8 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     private final AppExtensionInfo extInfo;
 
+    private List<AbstractProperty> configProperties;
+
     public enum CommentaryInterval {
         ONE("Every minute", 60 * 1000),
         TWO("Every two minutes", 120 * 1000),
@@ -111,6 +113,8 @@ public class SceneryExtension extends MusicPlayerExtension {
         if (extInfo == null) {
             throw new RuntimeException("SceneryExtension: can't parse extInfo.json from jar resources!");
         }
+
+        createConfigProperties();
     }
 
     @Override
@@ -120,33 +124,7 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     @Override
     public List<AbstractProperty> getConfigProperties() {
-        // Peek the values of our external load dirs:
-        String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
-        String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
-        log.info("externalDirScenery="+externalDirScenery);
-        log.info("externalDirCompanions="+externalDirCompanions);
-        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), List.of()); // TODO built-in scenery
-        companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
-
-        // Now we can build and return our props:
-        List<AbstractProperty> props = new ArrayList<>();
-
-        // Companion properties:
-        props.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
-        props.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
-        props.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
-        props.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
-        props.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
-        props.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
-        props.add(new DecimalProperty("Scenery.Tour guide.transparency", "Text opacity:", 1.0, 0.1, 1.0, 0.05));
-        props.add(new DirectoryProperty("Scenery.Tour guide.externalDir", "Custom tour guides:", true));
-
-        // Scenery properties:
-        props.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
-        props.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
-        props.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
-
-        return props;
+        return configProperties;
     }
 
     @Override
@@ -160,6 +138,46 @@ public class SceneryExtension extends MusicPlayerExtension {
     @Override
     public List<VisualizationManager.Visualizer> getCustomVisualizers() {
         return List.of(new SceneryVisualizer());
+    }
+
+    /**
+     * There's a bug in swing-extras (covered in issue 62) where our getConfigProperties() method
+     * will be invoked by the calling app multiple times. This is a problem if we create our config
+     * properties in that method before returning them (there will be multiple instances of each
+     * property floating around). So, for now, create them here and then just return the list of them
+     * each time getConfigProperties() is invoked.
+     * <p>
+     *     TODO clean this up once (A HREF="https://github.com/scorbo2/swing-extras/issues/62">swing-extras issue 62</a>
+     *     is resolved.
+     * </p>
+     */
+    private void createConfigProperties() {
+        // Peek the values of our external load dirs so we can initialize properly:
+        String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
+        String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
+        log.info("externalDirScenery="+externalDirScenery);
+        log.info("externalDirCompanions="+externalDirCompanions);
+        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), List.of()); // TODO built-in scenery
+        companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
+
+        // Now we can build out our list of properties:
+        configProperties = new ArrayList<>();
+
+        // Companion properties:
+        configProperties.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
+        configProperties.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
+        configProperties.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
+        configProperties.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
+        configProperties.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
+        configProperties.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
+        configProperties.add(new DecimalProperty("Scenery.Tour guide.transparency", "Text opacity:", 1.0, 0.1, 1.0, 0.05));
+        configProperties.add(new DirectoryProperty("Scenery.Tour guide.externalDir", "Custom tour guides:", true));
+
+        // Scenery properties:
+        configProperties.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
+        configProperties.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
+        configProperties.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
+
     }
 
     public static String getBaseFileName(File file) {
