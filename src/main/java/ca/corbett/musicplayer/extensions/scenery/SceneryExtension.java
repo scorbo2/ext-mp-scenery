@@ -70,21 +70,27 @@ public class SceneryExtension extends MusicPlayerExtension {
     }
 
     public enum SceneryInterval {
-        TRACK("When current track changes"),
-        TWO("Every two minutes"),
-        FIVE("Every five minutes"),
-        TEN("Every ten minutes"),
-        FIFTEEN("Every fifteen minutes");
+        TRACK("When current track changes", -1),
+        TWO("Every two minutes", 120 * 1000),
+        FIVE("Every five minutes", 300 * 1000),
+        TEN("Every ten minutes", 600 * 1000),
+        FIFTEEN("Every fifteen minutes", 900 * 1000);
 
         private final String label;
+        private final int intervalMs;
 
-        SceneryInterval(String label) {
+        SceneryInterval(String label, int ms) {
             this.label = label;
+            this.intervalMs = ms;
         }
 
         @Override
         public String toString() {
             return label;
+        }
+
+        public int getIntervalMs() {
+            return intervalMs;
         }
     }
 

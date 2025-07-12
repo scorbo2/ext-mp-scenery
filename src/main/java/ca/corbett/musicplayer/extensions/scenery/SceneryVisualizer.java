@@ -47,6 +47,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private SceneryExtension.CommentaryInterval commentaryInterval;
     private float textOpacity;
 
+    private SceneryExtension.SceneryInterval sceneryInterval;
+
     private int displayWidth;
     private int displayHeight;
     private int textX;
@@ -55,12 +57,14 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     // State vars:
     boolean isTrackAnnounced;
     long lastCommentTime;
+    long lastSceneryChangeTime;
     boolean isCommentingNow;
     String artist;
     String track;
     Font effectiveFont;
     Color effectiveTextFg;
     Color effectiveTextBg;
+    boolean isFirstFrame;
 
     public SceneryVisualizer() {
         super(NAME);
@@ -72,6 +76,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         displayHeight = height;
         artist = "N/A";
         track = "N/A";
+        isFirstFrame = true;
 
         // Text width is the display width minus a margin on either side minus the width of the companion image:
         textWidth = displayWidth - SceneryExtension.IMAGE_MAX_DIM - (MARGIN*2);
@@ -106,11 +111,16 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             VisualizationWindow.getInstance().toggleTextOverlayEnabled();
         }
 
-        lastCommentTime = 0;
+        lastCommentTime = 0; // force an immediate comment
+        lastSceneryChangeTime = System.currentTimeMillis(); // but wait to swap scenery
     }
 
     @Override
     public void renderFrame(Graphics2D g, VisualizationTrackInfo trackInfo) {
+
+        // Note how long it's been since we had a comment or a scenery change:
+        long timeSinceLastMessage = System.currentTimeMillis() - lastCommentTime;
+        long timeSinceLastSceneryChange = System.currentTimeMillis() - lastSceneryChangeTime;
 
         // Look for track changes and make note of artist and track for text substitution:
         if (trackInfo != null) {
@@ -124,6 +134,13 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Render background scenery image
         imageScroller.renderFrame(g);
+
+        // Change the scenery if the track has changed and we are in SceneryInterval.TRACK:
+        if (sceneryInterval == SceneryExtension.SceneryInterval.TRACK && ! isTrackAnnounced && ! isFirstFrame) {
+            scenery = SceneryExtension.sceneryLoader.loadRandom();
+            imageScroller.setImage(scenery.getRandomImage());
+            lastSceneryChangeTime = System.currentTimeMillis();
+        }
 
         // Announce the track if it hasn't been done yet:
         if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null) {
@@ -171,10 +188,20 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             isCommentingNow = false;
         }
 
+        // Swap scenery if it's time:
+        if (sceneryInterval != SceneryExtension.SceneryInterval.TRACK &&
+            (System.currentTimeMillis() - lastSceneryChangeTime) > sceneryInterval.getIntervalMs()) {
+            scenery = SceneryExtension.sceneryLoader.loadRandom();
+            imageScroller.setImage(scenery.getRandomImage());
+            lastSceneryChangeTime = System.currentTimeMillis();
+        }
+
         companionAnimator.renderFrame(g);
         textRenderer.updateTextAnimation();
         textAnimator.setImage(textRenderer.getBuffer());
         textAnimator.renderFrame(g);
+
+        isFirstFrame = false; // this is just to prevent scenery swap on the very first render
     }
 
     @Override
@@ -195,13 +222,15 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         AbstractProperty styleOverrideProp = propsManager.getProperty("Scenery.Tour guide.allowStyleOverride");
         AbstractProperty defaultStyleProp = propsManager.getProperty("Scenery.Tour guide.defaultFont");
         AbstractProperty transparencyProp = propsManager.getProperty("Scenery.Tour guide.transparency");
+        AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
 
         if (! (chooserProp instanceof CompanionChooserProperty) ||
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
             ! (commentaryIntervalProp instanceof EnumProperty) ||
             ! (styleOverrideProp instanceof BooleanProperty) ||
             ! (defaultStyleProp instanceof FontProperty) ||
-            ! (transparencyProp instanceof DecimalProperty)) {
+            ! (transparencyProp instanceof DecimalProperty) ||
+            ! (sceneryIntervalProp instanceof EnumProperty)) {
             log.severe("SceneryVisualizer: our properties are of the wrong type!");
             return;
         }
@@ -244,5 +273,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         // We can't use instanceof to pre-check these class casts because of type erasure, but eh, it'll be fine.
         //noinspection unchecked
         commentaryInterval = ((EnumProperty<SceneryExtension.CommentaryInterval>)commentaryIntervalProp).getSelectedItem();
+        //noinspection unchecked
+        sceneryInterval = ((EnumProperty<SceneryExtension.SceneryInterval>)sceneryIntervalProp).getSelectedItem();
     }
 }
