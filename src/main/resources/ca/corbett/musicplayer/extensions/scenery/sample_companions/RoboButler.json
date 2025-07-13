@@ -23,7 +23,7 @@
       "scenery": ["sci-fi"],
       "responses": [
         "This place is interesting to me. Let's stay a while.",
-        "An interesting display of technology.",
+        "An interesting display of technology. I wonder if there are any robots here?",
         "Ah, I would like to study this technology in more detail!"
       ]
     },

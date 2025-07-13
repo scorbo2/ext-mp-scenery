@@ -16,7 +16,6 @@ import ca.corbett.musicplayer.ui.VisualizationWindow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class SceneryVisualizer extends VisualizationManager.Visualizer implements UIReloadable {
@@ -29,7 +28,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private static final int MARGIN = 100;
 
     /** How long, in milliseconds, to leave a message up **/
-    private static final int COMMENT_DISPLAY_TIME = 8888;
+    private static final int BASE_COMMENT_TIME_MS = 8888;
 
     private ImageScroller imageScroller;
     private AnimatedTextRenderer textRenderer;
@@ -144,15 +143,16 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Announce the track if it hasn't been done yet:
         if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null) {
+            String msg = companion.getRandomTrackChangeMessage();
+            msg = msg.replaceAll("\\$\\{artist}", artist);
+            msg = msg.replaceAll("\\$\\{track}", track);
+
             isCommentingNow = true;
-            lastCommentTime = System.currentTimeMillis();
+            lastCommentTime = System.currentTimeMillis() + msg.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
             companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
             companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
             isTrackAnnounced = true;
 
-            String msg = companion.getRandomTrackChangeMessage();
-            msg = msg.replaceAll("\\$\\{artist}", artist);
-            msg = msg.replaceAll("\\$\\{track}", track);
             textRenderer.setText(msg);
             textAnimator.setDestination(textX, displayHeight - 450);
         }
@@ -169,7 +169,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
             if (msg != null && ! msg.isBlank()) {
                 isCommentingNow = true;
-                lastCommentTime = System.currentTimeMillis();
+                lastCommentTime = System.currentTimeMillis() + msg.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
                 companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
                 companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
 
@@ -182,7 +182,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         }
 
         // Remove companion if a message has been up for a certain time:
-        else if (isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > COMMENT_DISPLAY_TIME) {
+        else if (isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > BASE_COMMENT_TIME_MS) {
             companionAnimator.setDestination(-500, displayHeight - 500);
             textAnimator.setDestination(textX, displayHeight + 100);
             isCommentingNow = false;
@@ -190,6 +190,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Swap scenery if it's time:
         if (sceneryInterval != SceneryExtension.SceneryInterval.TRACK &&
+            // TODO a transition might be nice instead of just a hard cut to the new one...
             (System.currentTimeMillis() - lastSceneryChangeTime) > sceneryInterval.getIntervalMs()) {
             scenery = SceneryExtension.sceneryLoader.loadRandom();
             imageScroller.setImage(scenery.getRandomImage());
