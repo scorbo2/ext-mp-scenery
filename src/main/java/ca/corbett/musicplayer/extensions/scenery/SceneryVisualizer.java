@@ -123,7 +123,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Look for track changes and make note of artist and track for text substitution:
         if (trackInfo != null) {
-            if (! artist.equalsIgnoreCase(trackInfo.getArtist()) &&
+            if (! artist.equalsIgnoreCase(trackInfo.getArtist()) ||
                 ! track.equalsIgnoreCase(trackInfo.getTitle())) {
                 isTrackAnnounced = false;
             }
