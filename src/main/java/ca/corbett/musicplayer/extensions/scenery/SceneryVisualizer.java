@@ -126,6 +126,11 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             if (! artist.equalsIgnoreCase(trackInfo.getArtist()) ||
                 ! track.equalsIgnoreCase(trackInfo.getTitle())) {
                 isTrackAnnounced = false;
+
+                // Hard cancel any comment that was in progress and reset for the track announcement:
+                isCommentingNow = false;
+                textAnimator.setPosition(textX, displayHeight + 100);
+                companionAnimator.setPosition(-500, displayHeight - 500);
             }
             artist = trackInfo.getArtist();
             track = trackInfo.getTitle();
@@ -135,7 +140,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         imageScroller.renderFrame(g);
 
         // Change the scenery if the track has changed and we are in SceneryInterval.TRACK:
-        if (sceneryInterval == SceneryExtension.SceneryInterval.TRACK && ! isTrackAnnounced && ! isFirstFrame) {
+        if (sceneryInterval == SceneryExtension.SceneryInterval.TRACK && ! isTrackAnnounced && ! isFirstFrame && trackInfo != null) {
             scenery = SceneryExtension.sceneryLoader.loadRandom();
             imageScroller.setImage(scenery.getRandomImage());
             lastSceneryChangeTime = System.currentTimeMillis();
@@ -158,7 +163,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         }
 
         // Look for a conversation trigger:
-        else if (! isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > commentaryInterval.getIntervalMs()) {
+        else if (! isCommentingNow && timeSinceLastMessage > commentaryInterval.getIntervalMs()) {
             // Does the companion have something to say about this artist, track, or scenery image?
             String msg = companion.getResponse(artist, track, scenery.getTags());
             if (msg == null) {
@@ -182,7 +187,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         }
 
         // Remove companion if a message has been up for a certain time:
-        else if (isCommentingNow && (System.currentTimeMillis() - lastCommentTime) > BASE_COMMENT_TIME_MS) {
+        else if (isCommentingNow && timeSinceLastMessage > BASE_COMMENT_TIME_MS) {
             companionAnimator.setDestination(-500, displayHeight - 500);
             textAnimator.setDestination(textX, displayHeight + 100);
             isCommentingNow = false;
@@ -190,8 +195,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Swap scenery if it's time:
         if (sceneryInterval != SceneryExtension.SceneryInterval.TRACK &&
+            timeSinceLastSceneryChange > sceneryInterval.getIntervalMs()) {
             // TODO a transition might be nice instead of just a hard cut to the new one...
-            (System.currentTimeMillis() - lastSceneryChangeTime) > sceneryInterval.getIntervalMs()) {
             scenery = SceneryExtension.sceneryLoader.loadRandom();
             imageScroller.setImage(scenery.getRandomImage());
             lastSceneryChangeTime = System.currentTimeMillis();
