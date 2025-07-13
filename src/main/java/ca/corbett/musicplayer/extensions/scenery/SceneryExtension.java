@@ -33,9 +33,8 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     public static final int IMAGE_MAX_DIM = 450; // arbitrary size limit for width or height
 
-    public static Companion roboButler;
-    public static Companion bennyTheBear;
     private List<Companion> builtInCompanions;
+    private List<SceneryImage> builtInScenery;
 
     public static CompanionLoader companionLoader;
     public static SceneryLoader sceneryLoader;
@@ -96,21 +95,40 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     public SceneryExtension() {
         try {
+            // NOTE! We can ONLY load resources from our own jar file in the constructor!
+            // I described this here: https://github.com/scorbo2/swing-extras/issues/34#issuecomment-2882106784
+            // I have yet to find and fix the problem. So, all of our built-in resources
+            // have to be loaded here in the constructor, as we will be unable to load them later.
+
+            // Built-in companions:
+            builtInCompanions = new ArrayList<>();
             BufferedImage img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.jpg"));
-            roboButler = Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
-                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.json"), img);
-            log.info("Loaded RoboButler!");
+            builtInCompanions.add(Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/RoboButler.json"), img));
 
             img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.jpg"));
-            bennyTheBear = Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
-                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.json"), img);
-            log.info("Loaded Benny the Bear!");
+            builtInCompanions.add(Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.json"), img));
 
-            builtInCompanions = new ArrayList<>();
-            builtInCompanions.add(roboButler);
-            builtInCompanions.add(bennyTheBear);
+            // Built-in scenery:
+            builtInScenery = new ArrayList<>();
+            img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Mountains.jpg"));
+            builtInScenery.add(SceneryImage.load(SceneryExtension.class.getResourceAsStream((
+                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Mountains.json")), List.of(img)));
+
+            img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Stonehenge.jpg"));
+            builtInScenery.add(SceneryImage.load(SceneryExtension.class.getResourceAsStream((
+                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Stonehenge.json")), List.of(img)));
+
+            log.info("SceneryExtension: loaded " +
+                         builtInCompanions.size() +
+                         " built-in companions and " +
+                         builtInScenery.size() +
+                         " built-in scenery images.");
         }
         catch (IOException ioe) {
             log.log(Level.SEVERE, "Can't load extension resources!", ioe);
@@ -161,7 +179,7 @@ public class SceneryExtension extends MusicPlayerExtension {
         // Peek the values of our external load dirs so we can initialize properly:
         String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
         String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
-        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), List.of()); // TODO built-in scenery
+        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), builtInScenery);
         companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
 
         // Now we can build out our list of properties:

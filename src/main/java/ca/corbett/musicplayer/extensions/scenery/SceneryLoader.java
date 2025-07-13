@@ -36,7 +36,7 @@ public class SceneryLoader {
         SceneryImage scenery = null;
 
         // Loop to find one that loads:
-        while (! metaFiles.isEmpty() && scenery == null) {
+        while (scenery == null) {
             try {
                 // Are we loading a built-in?
                 if (index >= metaFiles.size()) {
