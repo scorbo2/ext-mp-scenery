@@ -198,30 +198,21 @@ public class Companion {
      * @return a random response string, or null if no triggers match
      */
     public String getResponse(String artistName, String trackTitle, List<String> sceneryTags) {
-        // Find all triggers that match these parameters:
-        List<CompanionTrigger> matchingTriggers = new ArrayList<>();
+        // Find all triggers that match these parameters and note their possible responses:
+        List<String> responses = new ArrayList<>();
         for (CompanionTrigger candidateTrigger : triggers) {
             if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
-                matchingTriggers.add(candidateTrigger);
+                responses.addAll(candidateTrigger.getResponses());
             }
         }
 
-        // If none of our triggers matches, we have no response:
-        if (matchingTriggers.isEmpty()) {
+        // If we matched nothing, we're done here:
+        if (responses.isEmpty()) {
             return null;
         }
 
-        // Apparently ThreadLocalRandom has better performance than java.util.Random
+        // Pick one at random:
         ThreadLocalRandom rand = ThreadLocalRandom.current();
-
-        // Pick one matching trigger at random and get its list of possible responses:
-        CompanionTrigger trigger = matchingTriggers.get(rand.nextInt(matchingTriggers.size()));
-        List<String> responses = trigger.getResponses();
-        if (responses == null || responses.isEmpty()) {
-            return null;
-        }
-
-        // Pick a response at random and return it:
         return responses.get(rand.nextInt(responses.size()));
     }
 
