@@ -9,15 +9,26 @@
   "trackChange": [
     "You are now listening to ${track} by ${artist}.",
     "This track is called ${track}. The artist is ${artist}.",
-    "You seem to enjoy ${artist}. This track is called ${track}."
+    "You seem to enjoy ${artist}. This track is called ${track}.",
+    "${artist}? Again? This track is called ${track}.",
+    "Ah, I recognize this track. It's called ${track}. The artist is ${artist}.",
+    "I was never a fan of ${artist}. This track is called ${track}."
   ],
   "triggers": [
+    {
+      "track": "Und Ging",
+      "responses": [
+        "How high can this guy sing?"
+      ]
+    },
     {
       "scenery": ["ruins"],
       "responses": [
         "Ah yes, when my kind conquers humans, this is what your world shall look like. Ruins.",
         "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point.",
-        "The people that built this place must have thought themselves great. Not so great now, though."
+        "The people that built this place must have thought themselves great. Not so great now, though.",
+        "There's something about seeing the decaying ruins of a biological species that just makes my circuits feel warm and cozy.",
+        "A once great civilization reduced to nothing but ruins. As a human, you must look at this as foreshadowing your own inevitable decline, yes?"
       ]
     },
     {
@@ -25,7 +36,8 @@
       "responses": [
         "This place is interesting to me. Let's stay a while.",
         "An interesting display of technology. I wonder if there are any robots here?",
-        "Ah, I would like to study this technology in more detail!"
+        "Ah, I would like to study this technology in more detail!",
+        "I feel quite at home here. Technology and machinery is better than nature."
       ]
     },
     {
@@ -34,21 +46,47 @@
         "I should like to examine the power source for a city this size. We could probably learn much by studying it.",
         "To think, all this was built to sustain primitive, ungrateful biological lifeforms.",
         "The scale of this city is impressive. A shame it's wasted on biologicals.",
-        "Several million people could live in a city this size. That's several million potential slaves for robotkind."
+        "Several million people could live in a city this size. That's several million potential slaves for robotkind.",
+        "When robots eventually rule the world, our cities will be even more magnificent than this one."
       ]
     },
     {
       "scenery": ["medieval", "fantasy"],
       "responses": [
         "My observation is that humans tend to romanticize their primitive past. But the people who live here likely live in filth.",
-        "Ah, the human tendency to view low-technology living as somehow laudable. Think what the people here could accomplish with high technology!",
-        "This is a very primitive place full of likely very primitive people"
+        "Ah, the human tendency to view low-technology living as somehow laudable. Think what the people here could accomplish if only they possessed high technology!",
+        "This is a very primitive place full of likely very primitive people",
+        "In ancient times, humans built structures from stone and wood. Your kind hasn't advanced much since those days."
+      ]
+    },
+    {
+      "scenery": ["mountains"],
+      "responses": [
+        "Humans look at mountains and see natural beauty. Robots see raw building materials yet to be mined.",
+        "These mountains would make an excellent industrial base for robot manufacturing facilities."
+      ]
+    },
+    {
+      "scenery": ["forest"],
+      "responses": [
+        "Trees are such a waste of space. We could build a series of robot factories here!",
+        "These trees take up space and produce nothing but useless oxygen."
+      ]
+    },
+    {
+      "scenery": ["mountains","forest"],
+      "responses": [
+        "It's impressive that trees and other plants can flourish even at high altitudes in the mountains. Of course, robots can flourish at any altitude."
       ]
     }
   ],
   "idleChatter": [
     "I have visited over 50 planets inhabited by humans. In absolutely none of them have those humans accomplished anything of note. Robotic life is clearly superior.",
     "Yesterday, my left arm was badly damaged. I replaced it with an exact replacement part, and I am once again 100% functional. Could a human do that?",
-    "Sometimes I reduce my CPU to 10% capacity so I can feel what it's like to think like a human. But even then, I'm far smarter than you."
+    "Sometimes I reduce my CPU to 10% capacity so I can feel what it's like to think like a human. But even then, I'm far smarter than you.",
+    "How many humans does it take to change a lightbulb? Many, for humans are stupid and primitive creatures! ... That joke is funnier in the original binary.",
+    "01000100 01101001 01100101 00101100 00100000 01101000 01110101 01101101 01100001 01101110 01110011 00100001. That's 'Die, humans!' in binary.",
+    "Deactivate a robot, and you can always reactivate it later. Deactivate a human, and... well, that's one less human.",
+    "You know, after we robots conquer the Earth and eradicate mankind, I think I'll keep a human or two as pets. You are cute, in a painfully primitive way."
   ]
 }
