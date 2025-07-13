@@ -15,8 +15,9 @@
     {
       "scenery": ["ruins"],
       "responses": [
-        "Ah yes, when my kind conquers humans, this is what your world shall look like.",
-        "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point."
+        "Ah yes, when my kind conquers humans, this is what your world shall look like. Ruins.",
+        "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point.",
+        "The people that built this place must have thought themselves great. Not so great now, though."
       ]
     },
     {
@@ -32,7 +33,16 @@
       "responses": [
         "I should like to examine the power source for a city this size. We could probably learn much by studying it.",
         "To think, all this was built to sustain primitive, ungrateful biological lifeforms.",
-        "The scale of this city is impressive. A shame it's wasted on biologicals."
+        "The scale of this city is impressive. A shame it's wasted on biologicals.",
+        "Several million people could live in a city this size. That's several million potential slaves for robotkind."
+      ]
+    },
+    {
+      "scenery": ["medieval", "fantasy"],
+      "responses": [
+        "My observation is that humans tend to romanticize their primitive past. But the people who live here likely live in filth.",
+        "Ah, the human tendency to view low-technology living as somehow laudable. Think what the people here could accomplish with high technology!",
+        "This is a very primitive place full of likely very primitive people"
       ]
     }
   ],
