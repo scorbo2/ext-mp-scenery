@@ -152,19 +152,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             if (rotateCompanions) {
                 setCompanion(SceneryExtension.companionLoader.getRandom());
             }
-
-            String msg = companion.getRandomTrackChangeMessage();
-            msg = msg.replaceAll("\\$\\{artist}", artist);
-            msg = msg.replaceAll("\\$\\{track}", track);
-
-            isCommentingNow = true;
-            lastCommentTime = System.currentTimeMillis() + msg.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
-            companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
-            companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
-            isTrackAnnounced = true;
-
-            textRenderer.setText(msg);
-            textAnimator.setDestination(textX, displayHeight - 450);
+            beginComment(companion.getRandomTrackChangeMessage(), trackInfo);
         }
 
         // Look for a conversation trigger:
@@ -180,13 +168,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
                 if (rotateCompanions) {
                     setCompanion(SceneryExtension.companionLoader.getRandom());
                 }
-                isCommentingNow = true;
-                lastCommentTime = System.currentTimeMillis() + msg.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
-                companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
-                companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
-
-                textRenderer.setText(msg);
-                textAnimator.setDestination(textX, displayHeight - 450);
+                beginComment(msg, trackInfo);
             }
 
             // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
@@ -297,5 +279,23 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             textRenderer.setTextColor(effectiveTextFg);
             textRenderer.setBackgroundColor(effectiveTextBg);
         }
+    }
+
+    private void beginComment(String comment, VisualizationTrackInfo trackInfo) {
+        if (trackInfo != null) {
+            // Do substitutions for ${artist}, ${track}, and ${album}:
+            comment = comment.replaceAll("\\$\\{artist}", trackInfo.getArtist());
+            comment = comment.replaceAll("\\$\\{track}", trackInfo.getTitle());
+            comment = comment.replaceAll("\\$\\{album}", trackInfo.getAlbum());
+        }
+
+        isCommentingNow = true;
+        lastCommentTime = System.currentTimeMillis() + comment.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
+        companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
+        companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
+        isTrackAnnounced = true;
+
+        textRenderer.setText(comment);
+        textAnimator.setDestination(textX, displayHeight - 450);
     }
 }
