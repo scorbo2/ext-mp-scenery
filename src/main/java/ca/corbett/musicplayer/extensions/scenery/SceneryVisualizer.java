@@ -148,15 +148,20 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         }
 
         // Announce the track if it hasn't been done yet:
-        if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null) {
+        if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null && announceTrackChange) {
             if (rotateCompanions) {
                 setCompanion(SceneryExtension.companionLoader.getRandom());
             }
             beginComment(companion.getRandomTrackChangeMessage(), trackInfo);
+            isTrackAnnounced = true;
         }
 
         // Look for a conversation trigger:
         else if (! isCommentingNow && timeSinceLastMessage > commentaryInterval.getIntervalMs()) {
+            if (rotateCompanions) {
+                setCompanion(SceneryExtension.companionLoader.getRandom());
+            }
+
             // Does the companion have something to say about this artist, track, or scenery image?
             String msg = companion.getResponse(artist, track, scenery.getTags());
             if (msg == null) {
@@ -165,9 +170,6 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             }
 
             if (msg != null && ! msg.isBlank()) {
-                if (rotateCompanions) {
-                    setCompanion(SceneryExtension.companionLoader.getRandom());
-                }
                 beginComment(msg, trackInfo);
             }
 
@@ -182,6 +184,11 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             companionAnimator.setDestination(-500, displayHeight - 500);
             textAnimator.setDestination(textX, displayHeight + 100);
             isCommentingNow = false;
+        }
+
+        // If "always announce track change" is off, just consider it done even though it wasn't:
+        if (! announceTrackChange) {
+            isTrackAnnounced = true;
         }
 
         // Swap scenery if it's time:
@@ -293,7 +300,6 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         lastCommentTime = System.currentTimeMillis() + comment.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
         companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
         companionAnimator.setDestination(textX - companionAnimator.getImage().getWidth(), displayHeight - 500);
-        isTrackAnnounced = true;
 
         textRenderer.setText(comment);
         textAnimator.setDestination(textX, displayHeight - 450);
