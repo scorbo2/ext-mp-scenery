@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +24,11 @@ public class CompanionLoader {
 
     public List<Companion> getAll() {
         return new ArrayList<>(companions);
+    }
+
+    public Companion getRandom() {
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+        return companions.get(rand.nextInt(companions.size()));
     }
 
     private List<Companion> loadCompanions(File rootDir, List<Companion> builtIns) {

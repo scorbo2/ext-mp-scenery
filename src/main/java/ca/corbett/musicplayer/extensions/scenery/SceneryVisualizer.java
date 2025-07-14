@@ -45,6 +45,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private Color defaultFg;
     private SceneryExtension.CommentaryInterval commentaryInterval;
     private float textOpacity;
+    private boolean rotateCompanions;
 
     private SceneryExtension.SceneryInterval sceneryInterval;
 
@@ -148,6 +149,10 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Announce the track if it hasn't been done yet:
         if (! isTrackAnnounced && ! isCommentingNow && trackInfo != null) {
+            if (rotateCompanions) {
+                setCompanion(SceneryExtension.companionLoader.getRandom());
+            }
+
             String msg = companion.getRandomTrackChangeMessage();
             msg = msg.replaceAll("\\$\\{artist}", artist);
             msg = msg.replaceAll("\\$\\{track}", track);
@@ -171,8 +176,10 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
                 msg = companion.getRandomIdleChatter();
             }
 
-            // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
             if (msg != null && ! msg.isBlank()) {
+                if (rotateCompanions) {
+                    setCompanion(SceneryExtension.companionLoader.getRandom());
+                }
                 isCommentingNow = true;
                 lastCommentTime = System.currentTimeMillis() + msg.length() * 25L; // give time to read longer messages; 1 extra second per 40 chars or so
                 companionAnimator.setImage(companion.getRandomImage(effectiveTextBg));
@@ -181,6 +188,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
                 textRenderer.setText(msg);
                 textAnimator.setDestination(textX, displayHeight - 450);
             }
+
+            // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
             else {
                 log.info("SceneryVisualizer: the companion had no response and no chatter! (add more dialog to this companion to avoid this!)");
             }
@@ -229,6 +238,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         AbstractProperty defaultStyleProp = propsManager.getProperty("Scenery.Tour guide.defaultFont");
         AbstractProperty transparencyProp = propsManager.getProperty("Scenery.Tour guide.transparency");
         AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
+        AbstractProperty rotateCompanionsProp = propsManager.getProperty("Scenery.Tour guide.rotate");
 
         if (! (chooserProp instanceof CompanionChooserProperty) ||
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
@@ -236,7 +246,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             ! (styleOverrideProp instanceof BooleanProperty) ||
             ! (defaultStyleProp instanceof FontProperty) ||
             ! (transparencyProp instanceof DecimalProperty) ||
-            ! (sceneryIntervalProp instanceof EnumProperty)) {
+            ! (sceneryIntervalProp instanceof EnumProperty) ||
+            ! (rotateCompanionsProp instanceof BooleanProperty)) {
             log.severe("SceneryVisualizer: our properties are of the wrong type!");
             return;
         }
@@ -248,16 +259,27 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         defaultBg = ((FontProperty)defaultStyleProp).getBgColor();
         defaultFg = ((FontProperty)defaultStyleProp).getTextColor();
         textOpacity = (float)((DecimalProperty)transparencyProp).getValue();
+        rotateCompanions = ((BooleanProperty)rotateCompanionsProp).getValue();
+
+        setCompanion(companion);
+
+        // We can't use instanceof to pre-check these class casts because of type erasure, but eh, it'll be fine.
+        //noinspection unchecked
+        commentaryInterval = ((EnumProperty<SceneryExtension.CommentaryInterval>)commentaryIntervalProp).getSelectedItem();
+        //noinspection unchecked
+        sceneryInterval = ((EnumProperty<SceneryExtension.SceneryInterval>)sceneryIntervalProp).getSelectedItem();
+    }
+
+    private void setCompanion(Companion companion) {
+        this.companion = companion;
 
         Font font = defaultFont;
-        log.info("defaultFont size is "+font.getSize());
         Color fg = defaultFg;
         Color bg = defaultBg;
 
         // If overrides are enabled and this companion supplies them, use them:
         if (allowStyleOverride && companion.getFont() != null) {
             font = companion.getFont();
-            log.info("Overridden font size is "+font.getSize());
         }
         if (allowStyleOverride && companion.getTextColor() != null) {
             fg = companion.getTextColor();
@@ -275,11 +297,5 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             textRenderer.setTextColor(effectiveTextFg);
             textRenderer.setBackgroundColor(effectiveTextBg);
         }
-
-        // We can't use instanceof to pre-check these class casts because of type erasure, but eh, it'll be fine.
-        //noinspection unchecked
-        commentaryInterval = ((EnumProperty<SceneryExtension.CommentaryInterval>)commentaryIntervalProp).getSelectedItem();
-        //noinspection unchecked
-        sceneryInterval = ((EnumProperty<SceneryExtension.SceneryInterval>)sceneryIntervalProp).getSelectedItem();
     }
 }
