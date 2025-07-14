@@ -112,6 +112,11 @@ public class SceneryExtension extends MusicPlayerExtension {
             builtInCompanions.add(Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_companions/BennyTheBear.json"), img));
 
+            img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/HeinrichDerHund.jpg"));
+            builtInCompanions.add(Companion.loadCompanion(SceneryExtension.class.getResourceAsStream(
+                "/ca/corbett/musicplayer/extensions/scenery/sample_companions/HeinrichDerHund.json"), img));
+
             // Built-in scenery:
             builtInScenery = new ArrayList<>();
             img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(

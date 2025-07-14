@@ -10,14 +10,15 @@
     "Dieser Track heißt ${track} von ${artist}.",
     "Ich kenne diesen Track! ${track}, von ${artist}.",
     "Habe ich diesen Track schon mal gehört? Ach ja! Das ist ${track} von ${artist}.",
-    "Du hörst gerade den Track ${title} von ${artist}."
+    "Du hörst gerade den Track ${track} von ${artist}."
   ],
   "triggers": [
     {
       "artist": "Schandmaul",
       "responses": [
-        "Ach ja, Diese Musikgruppe kenne ich sehr gut.",
-        "Schandmaul ist großartig, oder?"
+        "Ach ja, Diese Musikgruppe kenne ich sehr gut. Schandmaul, richtig?",
+        "Schandmaul ist großartig, oder?",
+        "Ich habe Schandmaul in Berlin gesehen! Sie waren fantastisch."
       ]
     },
     {

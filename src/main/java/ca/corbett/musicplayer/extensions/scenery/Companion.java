@@ -91,7 +91,6 @@ public class Companion {
         this.triggers = triggers;
         this.trackChangeMessages = new ArrayList<>();
         this.idleChatter = new ArrayList<>();
-        trackChangeMessages.add(DEFAULT_TRACK_CHANGE_MSG);
     }
 
     protected Companion setLanguage(String language) {
@@ -428,6 +427,13 @@ public class Companion {
     }
 
     public String getRandomTrackChangeMessage() {
+        // There's a wonky case where a Companion was created without any track change messages.
+        // In this case, we'll just supply our default:
+        if (trackChangeMessages.isEmpty()) {
+            return DEFAULT_TRACK_CHANGE_MSG;
+        }
+
+        // Otherwise, pick one at random out of our list.
         ThreadLocalRandom rand = ThreadLocalRandom.current();
         return trackChangeMessages.get(rand.nextInt(trackChangeMessages.size()));
     }
