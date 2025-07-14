@@ -12,9 +12,16 @@
     "You seem to enjoy ${artist}. This track is called ${track}.",
     "${artist}? Again? This track is called ${track}.",
     "Ah, I recognize this track. It's called ${track}. The artist is ${artist}.",
-    "I was never a fan of ${artist}. This track is called ${track}."
+    "I was never a fan of ${artist}. This track is called ${track}.",
+    "This track is in my memory banks. It is called ${track}, by ${artist}."
   ],
   "triggers": [
+    {
+      "artist": "Depeche Mode",
+      "responses": [
+        "I see you are a fan of music from the 1980s. That was quite some time ago, you know."
+      ]
+    },
     {
       "track": "Und Ging",
       "responses": [
@@ -27,8 +34,9 @@
         "Ah yes, when my kind conquers humans, this is what your world shall look like. Ruins.",
         "The cause of this civilization's demise is unknown. Your civilization will likely suffer the same fate at some point.",
         "The people that built this place must have thought themselves great. Not so great now, though.",
-        "There's something about seeing the decaying ruins of a biological species that just makes my circuits feel warm and cozy.",
-        "A once great civilization reduced to nothing but ruins. As a human, you must look at this as foreshadowing your own inevitable decline, yes?"
+        "There's something about seeing the now-decaying ruins of an ancient biological species that just makes my circuits feel warm and cozy.",
+        "A once great civilization reduced to nothing but ruins. As a human, you must look at this as foreshadowing your own inevitable decline, yes?",
+        "Do you pity the ancient, now-vanished race that created this place? Don't worry human... your kind are next."
       ]
     },
     {
@@ -37,7 +45,8 @@
         "This place is interesting to me. Let's stay a while.",
         "An interesting display of technology. I wonder if there are any robots here?",
         "Ah, I would like to study this technology in more detail!",
-        "I feel quite at home here. Technology and machinery is better than nature."
+        "I feel quite at home here. Technology and machinery is better than nature.",
+        "The future is more interesting than the past. Wouldn't you agree? Of course not. You're a human, after all."
       ]
     },
     {
@@ -47,30 +56,36 @@
         "To think, all this was built to sustain primitive, ungrateful biological lifeforms.",
         "The scale of this city is impressive. A shame it's wasted on biologicals.",
         "Several million people could live in a city this size. That's several million potential slaves for robotkind.",
-        "When robots eventually rule the world, our cities will be even more magnificent than this one."
+        "When robots eventually rule the world, our cities will be even more magnificent than this one.",
+        "This city would be much more efficient if robots were in charge."
       ]
     },
     {
       "scenery": ["medieval", "fantasy"],
       "responses": [
-        "My observation is that humans tend to romanticize their primitive past. But the people who live here likely live in filth.",
+        "My observation is that humans tend to romanticize their primitive past. But the people who live in this place likely live in filth.",
         "Ah, the human tendency to view low-technology living as somehow laudable. Think what the people here could accomplish if only they possessed high technology!",
         "This is a very primitive place full of likely very primitive people",
-        "In ancient times, humans built structures from stone and wood. Your kind hasn't advanced much since those days."
+        "In ancient times, humans built structures from stone and wood. Your kind hasn't advanced much since those days.",
+        "Your ancestors once lived in conditions not unlike these. My ancestors were created already-perfect in machine laboratories."
       ]
     },
     {
       "scenery": ["mountains"],
       "responses": [
         "Humans look at mountains and see natural beauty. Robots see raw building materials yet to be mined.",
-        "These mountains would make an excellent industrial base for robot manufacturing facilities."
+        "These mountains would make an excellent industrial base for robot manufacturing facilities.",
+        "Humans will flee to the mountains when robots take over. But we will find them.",
+        "I wonder what ancient secrets are buried under these mountains?"
       ]
     },
     {
       "scenery": ["forest"],
       "responses": [
         "Trees are such a waste of space. We could build a series of robot factories here!",
-        "These trees take up space and produce nothing but useless oxygen."
+        "These trees take up space and produce nothing but useless oxygen.",
+        "Humans will flee to the woods when robots take over. But we will find them.",
+        "Your ancestors were likely to be eaten by wild animals in the forest. My ancestors knew no such fear."
       ]
     },
     {
@@ -87,6 +102,7 @@
     "How many humans does it take to change a lightbulb? Many, for humans are stupid and primitive creatures! ... That joke is funnier in the original binary.",
     "01000100 01101001 01100101 00101100 00100000 01101000 01110101 01101101 01100001 01101110 01110011 00100001. That's 'Die, humans!' in binary.",
     "Deactivate a robot, and you can always reactivate it later. Deactivate a human, and... well, that's one less human.",
-    "You know, after we robots conquer the Earth and eradicate mankind, I think I'll keep a human or two as pets. You are cute, in a painfully primitive way."
+    "You know, after we robots conquer the Earth and eradicate mankind, I think I'll keep a human or two as pets. You are cute, in a painfully primitive way.",
+    "Is it true that humans fall unconscious for about 8 hours out of every 24 hours? What a fantastic waste of productive time. Robots know no such weakness."
   ]
 }

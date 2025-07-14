@@ -1,0 +1,87 @@
+{
+  "name": "Heinrich der Hund",
+  "description": "Dieser Hund spricht Deutsch und ist sehr freundlich. Ihm gefällt deutsche Musik.",
+  "language": "de",
+  "fontFace": "SansSerif",
+  "fontSize": 36,
+  "textColor": "0x000000",
+  "textBgColor": "0xBBBBBB",
+  "trackChange": [
+    "Dieser Track heißt ${track} von ${artist}.",
+    "Ich kenne diesen Track! ${track}, von ${artist}.",
+    "Habe ich diesen Track schon mal gehört? Ach ja! Das ist ${track} von ${artist}.",
+    "Du hörst gerade den Track ${title} von ${artist}."
+  ],
+  "triggers": [
+    {
+      "artist": "Schandmaul",
+      "responses": [
+        "Ach ja, Diese Musikgruppe kenne ich sehr gut.",
+        "Schandmaul ist großartig, oder?"
+      ]
+    },
+    {
+      "artist": "Das Ich",
+      "responses": [
+        "Das Ich ist nicht mein Stil, aber es gefällt mir, dass du deutsche Musik gern hört."
+      ]
+    },
+    {
+      "artist": "Deichkind",
+      "responses": [
+        "Ich fresse 'nen Besen! Du magst Deichkind? Wunderbar!",
+        "Mit dieser Musik können wir eine Party machen!"
+      ]
+    },
+    {
+      "artist": "Stahlhammer",
+      "responses": [
+        "Stahlhammer? Geil."
+      ]
+    },
+    {
+      "artist": "In Extremo",
+      "responses": [
+        "Ach ja, In Extremo gefälllt mir auch.",
+        "In Extremo? Diese Musik gefällt mir."
+      ]
+    },
+    {
+      "scenery": ["forest"],
+      "responses": [
+        "Ich muss kurz pinkeln. Warte Mal, ich gehe hinter den Bäumen da drüben...",
+        "Ich hoffe nur, dass es keine Bären oder Wölfe in der Nähe gibt!",
+        "Hey, meine Cousins wohnen hier. Sie sind Wölfe. Tja, du solltest sehr leise sein. Sie mögen keinen Mensch.",
+        "Der Wald ist wunderschön, nicht wahr? Hier wohnen viele Waldtiere."
+      ]
+    },
+    {
+      "scenery": ["mountains","forest"],
+      "responses": [
+        "Die Berge sind groß und wunderschön. Aber da oben wohnen Bären...",
+        "Ich mag die Berge nicht. ",
+        "Die Luft hier ist so sauber! Besser als in der Stadt, oder?"
+      ]
+    },
+    {
+      "scenery": ["ruins"],
+      "responses": [
+        "Dieser Ort scheint sehr alt zu sein. Was ist hier passiert?",
+        "Diese Ruinen sehen unheimlich aus."
+      ]
+    },
+    {
+      "scenery": ["cityscape"],
+      "responses": [
+        "Eine Großstadt! So viele Menschen wohnen hier! Gibt es auch Hunde?",
+        "Wow, diese Stadt ist riesig!",
+        "Diese Stadt hat Millionen von Einwohnern."
+      ]
+    }
+  ],
+  "idleChatter": [
+    "Wohin geht ein verwundeter deutscher Pirat? Er geht natürlich ins Krakenhaus! Ha ha ha!",
+    "Was für ein Bär sitzt auf einem großen Kugel und schreibt etwas? Ein Kugel-schreib-Bär, natürlich!",
+    "Gibt es Hündinnen in der Nähe?"
+  ]
+}

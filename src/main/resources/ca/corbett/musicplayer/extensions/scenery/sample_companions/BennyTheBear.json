@@ -7,20 +7,69 @@
   "textColor": "0xFFFFFF",
   "textBgColor": "0x0000FF",
   "trackChange": [
-    "You are now listening to ${track} by ${artist}."
+    "You are now listening to ${track} by ${artist}.",
+    "This track is called ${track}, by ${artist}.",
+    "Hey! I know this one! This is ${track}, by ${artist}, right?",
+    "Oh, I've heard this one before... this is ${track}, by ${artist}."
   ],
   "triggers": [
+    {
+      "artist": "The Beatles",
+      "responses": [
+        "I see you are a fan of the classics!"
+      ]
+    },
+    {
+      "artist": "Metallica",
+      "responses": [
+        "Eh, these guys are a little overrated. They were decent back in the day, when I was a cub, I guess."
+      ]
+    },
     {
       "scenery": ["forest"],
       "responses": [
         "I feel right at home among the trees!",
-        "Remember, only you can prevent forest fires!"
+        "Remember, only you can prevent forest fires!",
+        "There's just something about being in the trees again that makes me feel immediately more comfortable!"
+      ]
+    },
+    {
+      "scenery": ["mountains"],
+      "responses": [
+        "Hey, I think my cousin Gary the Grizzly has a cave in these mountains! We should pay him a visit! Oh, wait... he doesn't like humans very much.",
+        "Some day, when I retire, I'll find a nice cave up in these mountains.",
+        "Hey, have you ever hibernated in the caves in these mountains? They're super comfy! Humans hibernate for the winter, right?"
+      ]
+    },
+    {
+      "scenery": ["mountains","forest"],
+      "responses": [
+        "These woods make me want to find a lady bear and have a few little cubs of my own!",
+        "This actually looks like a good place for a bear to settle down.",
+        "I like being out here where the air is fresh and clean!"
+      ]
+    },
+    {
+      "scenery": ["ruins"],
+      "responses": [
+        "This place kind of gives me the creeps. There doesn't seem to be anyone around...",
+        "What do you think happened here? Did the people who built this place just move away somewhere else? Or...",
+        "Wow, this place looks very old. I don't think anyone has lived here in a long time."
+      ]
+    },
+    {
+      "scenery": ["cityscape"],
+      "responses": [
+        "Ugh, I don't like being in big cities. It just feels so unnatural.",
+        "I'll never understand how you humans live packed into cities like this by the millions. Wouldn't you rather be in the woods?",
+        "The air here doesn't smell very fresh. Cities like this just aren't as nice as the great outdoors."
       ]
     }
   ],
   "idleChatter": [
     "I know what you're thinking... 'does a bear poop in the woods?' - well, what do YOU think???",
     "Don't you hate it when your fur gets all matted down in the rain? Oh, wait, you don't have fur.",
-    "I'd rather be in the woods!"
+    "I'd rather be in the woods!",
+    "Hey, why did the bear cross the road? I think the better question is, why did humans build a road through nature in the first place?"
   ]
 }
