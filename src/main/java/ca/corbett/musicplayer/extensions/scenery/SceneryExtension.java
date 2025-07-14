@@ -206,6 +206,8 @@ public class SceneryExtension extends MusicPlayerExtension {
         configProperties.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
         configProperties.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
 
+        // TODO: I want an option to prefer sceney images with a given tag (or tags, if we can do multi-select)
+
     }
 
     public static String getBaseFileName(File file) {
