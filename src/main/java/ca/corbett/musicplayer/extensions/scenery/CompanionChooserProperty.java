@@ -97,7 +97,7 @@ public class CompanionChooserProperty extends AbstractProperty {
     }
 
     @Override
-    public FormField generateFormField() {
+    protected FormField generateFormFieldImpl() {
 
         // This is a bit ugly, but it works!
         // Basically I'm limited by my own swing-extras library, specifically issue #44.
