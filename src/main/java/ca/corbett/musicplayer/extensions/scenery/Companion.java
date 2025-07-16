@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.imageio.ImageIO;
+
+import ca.corbett.extras.image.ImageUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -150,7 +152,8 @@ public class Companion {
             throw new IOException("Failed to parse JSON resource!", e);
         }
 
-        return loadCompanion(rootNode, List.of(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH*2)));
+        BufferedImage scaledImage = ImageUtil.scaleImageToFitSquareBounds(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH*2);
+        return loadCompanion(rootNode, List.of(scaledImage));
     }
 
     protected static Companion loadCompanion(JsonNode rootNode, List<BufferedImage> images) throws IOException {
@@ -324,7 +327,7 @@ public class Companion {
                 if (image == null) {
                     throw new IOException("Failed to load image file: " + imageFile.getPath());
                 }
-                images.add(SceneryExtension.scaleImage(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2));
+                images.add(ImageUtil.scaleImageToFitSquareBounds(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2));
             } catch (Exception e) {
                 throw new IOException("Error reading image file: " + imageFile.getPath(), e);
             }
