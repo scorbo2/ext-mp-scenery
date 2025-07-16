@@ -137,7 +137,6 @@ public class CompanionChooserProperty extends AbstractProperty {
         field.render(panel, gbc);
         gbc.gridx = 3;
         JLabel spacerLabel = new JLabel("");
-        logger.info("weightX was "+gbc.weightx+" before I messed with it");
         gbc.weightx = 1.0;
         panel.add(spacerLabel, gbc);
 

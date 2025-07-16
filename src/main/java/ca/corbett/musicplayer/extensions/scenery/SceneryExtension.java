@@ -41,8 +41,6 @@ public class SceneryExtension extends MusicPlayerExtension {
 
     private final AppExtensionInfo extInfo;
 
-    private List<AbstractProperty> configProperties;
-
     public enum CommentaryInterval {
         ONE("Every minute", 60 * 1000),
         TWO("Every two minutes", 120 * 1000),
@@ -143,7 +141,18 @@ public class SceneryExtension extends MusicPlayerExtension {
             throw new RuntimeException("SceneryExtension: can't parse extInfo.json from jar resources!");
         }
 
-        createConfigProperties();
+        // Peek the values of our external load dirs so we can initialize properly:
+        String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
+        String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
+        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), builtInScenery);
+        companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
+
+        // Now we can update our config list with a fully initialized CompanionChooser:
+        for (int i = 0; i < configProperties.size(); i++) {
+            if (configProperties.get(i).getFullyQualifiedName().equals("Scenery.Tour guide.chooser")) {
+                configProperties.set(i, new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
+            }
+        }
     }
 
     @Override
@@ -152,47 +161,13 @@ public class SceneryExtension extends MusicPlayerExtension {
     }
 
     @Override
-    public List<AbstractProperty> getConfigProperties() {
-        return configProperties;
-    }
-
-    @Override
-    public void onActivate() {
-    }
-
-    @Override
-    public void onDeactivate() {
-    }
-
-    @Override
-    public List<VisualizationManager.Visualizer> getCustomVisualizers() {
-        return List.of(new SceneryVisualizer());
-    }
-
-    /**
-     * There's a bug in swing-extras (covered in issue 62) where our getConfigProperties() method
-     * will be invoked by the calling app multiple times. This is a problem if we create our config
-     * properties in that method before returning them (there will be multiple instances of each
-     * property floating around). So, for now, create them here and then just return the list of them
-     * each time getConfigProperties() is invoked.
-     * <p>
-     *     TODO clean this up once (A HREF="https://github.com/scorbo2/swing-extras/issues/62">swing-extras issue 62</a>
-     *     is resolved.
-     * </p>
-     */
-    private void createConfigProperties() {
-        // Peek the values of our external load dirs so we can initialize properly:
-        String externalDirScenery = AppConfig.peek("Scenery.Scenery.externalDir.dir");
-        String externalDirCompanions = AppConfig.peek("Scenery.Tour guide.externalDir.dir");
-        sceneryLoader = new SceneryLoader(externalDirScenery.isEmpty() ? null : new File(externalDirScenery), builtInScenery);
-        companionLoader = new CompanionLoader(externalDirCompanions.isEmpty() ? null : new File(externalDirCompanions), builtInCompanions);
-
+    protected List<AbstractProperty> createConfigProperties() {
         // Now we can build out our list of properties:
-        configProperties = new ArrayList<>();
+        List<AbstractProperty> configProperties = new ArrayList<>();
 
         // Companion properties:
         configProperties.add(LabelProperty.createLabel("Scenery.Overview.intro", "<html>The Scenery visualizer gives you gently scrolling beautiful<br>scenery, with a helpful tour guide to keep you company!</html>"));
-        configProperties.add(new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
+        configProperties.add(new LabelProperty("Scenery.Tour guide.chooser", "placeholder")); // we can't create this one yet... will update at end of constructor
         configProperties.add(new BooleanProperty("Scenery.Tour guide.rotate", "Randomly rotate tour guides", false));
         configProperties.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
         configProperties.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
@@ -207,7 +182,12 @@ public class SceneryExtension extends MusicPlayerExtension {
         configProperties.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
 
         // TODO: I want an option to prefer sceney images with a given tag (or tags, if we can do multi-select)
+        return configProperties;
+    }
 
+    @Override
+    public List<VisualizationManager.Visualizer> getCustomVisualizers() {
+        return List.of(new SceneryVisualizer());
     }
 
     public static String getBaseFileName(File file) {
