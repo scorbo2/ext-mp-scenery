@@ -11,6 +11,7 @@ import ca.corbett.extras.properties.EnumProperty;
 import ca.corbett.extras.properties.FontProperty;
 import ca.corbett.extras.properties.IntegerProperty;
 import ca.corbett.extras.properties.LabelProperty;
+import ca.corbett.extras.properties.ListProperty;
 import ca.corbett.extras.properties.PropertiesManager;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
@@ -180,8 +181,8 @@ public class SceneryExtension extends MusicPlayerExtension {
         configProperties.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
         configProperties.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
         configProperties.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
-
-        // TODO: I want an option to prefer sceney images with a given tag (or tags, if we can do multi-select)
+        configProperties.add(new ListProperty<String>("Scenery.Scenery.preferredTags", "Preferred tags:")
+                                 .setItems(List.of("Fantasy", "Forest", "Mountains", "Ruins"))); // TODO do this more smarterer
         return configProperties;
     }
 
