@@ -13,6 +13,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -147,7 +148,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         gbc.gridx = 1;
         gbc.gridheight = 5;
         gbc.anchor = GridBagConstraints.CENTER;
-        final ImagePanel imagePanel = new ImagePanel(currentCompanion.getImages().get(0), ImagePanelConfig.createSimpleReadOnlyProperties());
+        final ImagePanel imagePanel = new ImagePanel(currentCompanion.getRandomImage(Color.BLACK), ImagePanelConfig.createSimpleReadOnlyProperties());
         imagePanel.setPreferredSize(new Dimension(125,125));
         panel.add(imagePanel, gbc);
 
@@ -197,7 +198,7 @@ public class CompanionChooserProperty extends AbstractProperty {
             @Override
             public void actionPerformed(ActionEvent e) {
                 Companion c = companions.get(field.getSelectedIndex());
-                imagePanel.setImage(c.getImages().get(0));
+                imagePanel.setImage(c.getRandomImage(Color.BLACK));
                 descArea.setText(c.getDescription());
                 langLabel.setText("Language: "+c.getLanguage());
                 triggerCountLabel.setText("Trigger count: "+c.getTriggerCount());

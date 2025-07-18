@@ -16,6 +16,9 @@ import ca.corbett.musicplayer.ui.VisualizationWindow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
 
 public class SceneryVisualizer extends VisualizationManager.Visualizer implements UIReloadable {
@@ -40,6 +43,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private SceneryImage scenery;
     private boolean announceTrackChange;
     private boolean allowStyleOverride;
+    private boolean mixChatChatWithResponses;
     private Font defaultFont;
     private Color defaultBg;
     private Color defaultFg;
@@ -65,6 +69,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     Color effectiveTextFg;
     Color effectiveTextBg;
     boolean isFirstFrame;
+    ThreadLocalRandom rand;
 
     public SceneryVisualizer() {
         super(NAME);
@@ -72,6 +77,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
     @Override
     public void initialize(int width, int height) {
+        rand = ThreadLocalRandom.current();
         displayWidth = width;
         displayHeight = height;
         artist = "N/A";
@@ -163,14 +169,16 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             }
 
             // Does the companion have something to say about this artist, track, or scenery image?
-            String msg = companion.getResponse(artist, track, scenery.getTags());
-            if (msg == null) {
-                // If not, does the companion have any idle chitchat to offer?
-                msg = companion.getRandomIdleChatter();
+            List<String> responses = companion.getAllMatchingResponses(artist, track, scenery.getTags());
+
+            // If nothing matched, OR if "include chit-chat" is selected, also add random chit-chat messages:
+            if (responses.isEmpty() || mixChatChatWithResponses) {
+                responses.addAll(companion.getAllIdleChatter());
             }
 
-            if (msg != null && ! msg.isBlank()) {
-                beginComment(msg, trackInfo);
+            // Pick any random entry from this list and go with it:
+            if (! responses.isEmpty()) {
+                beginComment(responses.get(rand.nextInt(responses.size())), trackInfo);
             }
 
             // If the companion had nothing to say, just skip (ideally this shouldn't happen... the companion needs more triggers!)
@@ -224,6 +232,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         AbstractProperty announceTrackChangeProp = propsManager.getProperty("Scenery.Tour guide.announceTrackChange");
         AbstractProperty commentaryIntervalProp = propsManager.getProperty("Scenery.Tour guide.interval");
         AbstractProperty styleOverrideProp = propsManager.getProperty("Scenery.Tour guide.allowStyleOverride");
+        AbstractProperty mixChitChatProp = propsManager.getProperty("Scenery.Tour guide.mixChitChat");
         AbstractProperty defaultStyleProp = propsManager.getProperty("Scenery.Tour guide.defaultFont");
         AbstractProperty transparencyProp = propsManager.getProperty("Scenery.Tour guide.transparency");
         AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
@@ -233,6 +242,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
             ! (commentaryIntervalProp instanceof EnumProperty) ||
             ! (styleOverrideProp instanceof BooleanProperty) ||
+            ! (mixChitChatProp instanceof BooleanProperty) ||
             ! (defaultStyleProp instanceof FontProperty) ||
             ! (transparencyProp instanceof DecimalProperty) ||
             ! (sceneryIntervalProp instanceof EnumProperty) ||
@@ -244,6 +254,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         companion = ((CompanionChooserProperty)chooserProp).getSelectedItem();
         announceTrackChange = ((BooleanProperty)announceTrackChangeProp).getValue();
         allowStyleOverride = ((BooleanProperty)styleOverrideProp).getValue();
+        mixChatChatWithResponses = ((BooleanProperty)mixChitChatProp).getValue();
         defaultFont = ((FontProperty)defaultStyleProp).getFont();
         defaultBg = ((FontProperty)defaultStyleProp).getBgColor();
         defaultFg = ((FontProperty)defaultStyleProp).getTextColor();

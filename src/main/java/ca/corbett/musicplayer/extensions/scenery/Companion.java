@@ -201,12 +201,7 @@ public class Companion {
      */
     public String getResponse(String artistName, String trackTitle, List<String> sceneryTags) {
         // Find all triggers that match these parameters and note their possible responses:
-        List<String> responses = new ArrayList<>();
-        for (CompanionTrigger candidateTrigger : triggers) {
-            if (candidateTrigger.matches(artistName, trackTitle, sceneryTags)) {
-                responses.addAll(candidateTrigger.getResponses());
-            }
-        }
+        List<String> responses = getAllMatchingResponses(artistName, trackTitle, sceneryTags);
 
         // If we matched nothing, we're done here:
         if (responses.isEmpty()) {
@@ -444,5 +439,9 @@ public class Companion {
     public String getRandomIdleChatter() {
         ThreadLocalRandom rand = ThreadLocalRandom.current();
         return idleChatter.get(rand.nextInt(idleChatter.size()));
+    }
+
+    public List<String> getAllIdleChatter() {
+        return new ArrayList<>(idleChatter);
     }
 }
