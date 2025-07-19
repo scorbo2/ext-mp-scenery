@@ -134,7 +134,7 @@ public class CompanionChooserProperty extends AbstractProperty {
         }
         ComboField field = new ComboField(propertyLabel, items, selectedIndex, false);
         field.setIdentifier(fullyQualifiedName + ".chooser");
-        field.setEnabled(!isReadOnly);
+        field.setEnabled(isInitiallyEditable);
         field.render(panel, gbc);
         gbc.gridx = 3;
         JLabel spacerLabel = new JLabel("");
