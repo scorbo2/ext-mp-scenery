@@ -1,5 +1,8 @@
 package ca.corbett.musicplayer.extensions.scenery;
 
+import ca.corbett.extras.image.animation.AnimatedTextRenderer;
+import ca.corbett.extras.image.animation.ImageAnimator;
+import ca.corbett.extras.image.animation.ImageScroller;
 import ca.corbett.extras.properties.AbstractProperty;
 import ca.corbett.extras.properties.BooleanProperty;
 import ca.corbett.extras.properties.DecimalProperty;
