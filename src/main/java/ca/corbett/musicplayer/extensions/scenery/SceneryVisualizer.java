@@ -221,8 +221,12 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
     @Override
     public void stop() {
-        imageScroller.stop();
-        textRenderer.dispose();
+        if (imageScroller != null) {
+            imageScroller.stop();
+        }
+        if (textRenderer != null) {
+            textRenderer.dispose();
+        }
 
         // Stop listening for UI updates now:
         ReloadUIAction.getInstance().unregisterReloadable(this);
