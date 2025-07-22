@@ -40,7 +40,7 @@
       ]
     },
     {
-      "scenery": ["sci-fi"],
+      "scenery": ["scifi"],
       "responses": [
         "This place is interesting to me. Let's stay a while.",
         "An interesting display of technology. I wonder if there are any robots here?",
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "scenery": ["sci-fi", "cityscape"],
+      "scenery": ["scifi", "cityscape"],
       "responses": [
         "I should like to examine the power source for a city this size. We could probably learn much by studying it.",
         "To think, all this was built to sustain primitive, ungrateful biological lifeforms.",
