@@ -53,6 +53,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private SceneryExtension.CommentaryInterval commentaryInterval;
     private float textOpacity;
     private boolean rotateCompanions;
+    private SceneryExtension.Chattiness chattiness;
 
     private SceneryExtension.SceneryInterval sceneryInterval;
 
@@ -176,7 +177,18 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
             // If nothing matched, OR if "include chit-chat" is selected, also add random chit-chat messages:
             if (responses.isEmpty() || mixChatChatWithResponses) {
-                responses.addAll(companion.getAllIdleChatter());
+
+                // If we're mixing chit-chat in with trigger responses, obey the
+                // chattiness level configured in app props:
+                boolean includeChitChat = true;
+                if (! responses.isEmpty()) {
+                    int diceRoll = rand.nextInt(SceneryExtension.Chattiness.VERY_HIGH.getAmount() + 1);
+                    includeChitChat = chattiness.getAmount() >= diceRoll;
+                }
+
+                if (includeChitChat) {
+                    responses.addAll(companion.getAllIdleChatter());
+                }
             }
 
             // Pick any random entry from this list and go with it:
@@ -244,6 +256,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         AbstractProperty transparencyProp = propsManager.getProperty("Scenery.Tour guide.transparency");
         AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
         AbstractProperty rotateCompanionsProp = propsManager.getProperty("Scenery.Tour guide.rotate");
+        AbstractProperty chattinessProp = propsManager.getProperty("Scenery.Tour guide.chattiness");
 
         if (! (chooserProp instanceof CompanionChooserProperty) ||
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
@@ -253,7 +266,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             ! (defaultStyleProp instanceof FontProperty) ||
             ! (transparencyProp instanceof DecimalProperty) ||
             ! (sceneryIntervalProp instanceof EnumProperty) ||
-            ! (rotateCompanionsProp instanceof BooleanProperty)) {
+            ! (rotateCompanionsProp instanceof BooleanProperty) ||
+            ! (chattinessProp instanceof EnumProperty)) {
             log.severe("SceneryVisualizer: our properties are of the wrong type!");
             return;
         }
@@ -275,6 +289,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         commentaryInterval = ((EnumProperty<SceneryExtension.CommentaryInterval>)commentaryIntervalProp).getSelectedItem();
         //noinspection unchecked
         sceneryInterval = ((EnumProperty<SceneryExtension.SceneryInterval>)sceneryIntervalProp).getSelectedItem();
+        //noinspection unchecked
+        chattiness = ((EnumProperty<SceneryExtension.Chattiness>)chattinessProp).getSelectedItem();
     }
 
     private void setCompanion(Companion companion) {

@@ -11,6 +11,10 @@ import ca.corbett.extras.properties.EnumProperty;
 import ca.corbett.extras.properties.FontProperty;
 import ca.corbett.extras.properties.LabelProperty;
 import ca.corbett.extras.properties.ListProperty;
+import ca.corbett.extras.properties.PropertyFormFieldChangeListener;
+import ca.corbett.extras.properties.PropertyFormFieldValueChangedEvent;
+import ca.corbett.forms.fields.CheckBoxField;
+import ca.corbett.forms.fields.ComboField;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.extensions.MusicPlayerExtension;
 import ca.corbett.musicplayer.ui.VisualizationManager;
@@ -85,6 +89,34 @@ public class SceneryExtension extends MusicPlayerExtension {
 
         public int getIntervalMs() {
             return intervalMs;
+        }
+    }
+
+    /**
+     * Determines the frequency of general chit-chat inclusion when
+     * "include general chitchat" option is selected.
+     */
+    public enum Chattiness {
+        LOW("Low", 25),
+        MEDIUM("Medium", 50),
+        HIGH("High", 75),
+        VERY_HIGH("Very high", 100);
+
+        final private int amount;
+        final private String label;
+
+        Chattiness(String label, int amount) {
+            this.label = label;
+            this.amount = amount;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+
+        public int getAmount() {
+            return amount;
         }
     }
 
@@ -168,7 +200,18 @@ public class SceneryExtension extends MusicPlayerExtension {
         configProperties.add(new BooleanProperty("Scenery.Tour guide.rotate", "Randomly rotate tour guides", false));
         configProperties.add(new BooleanProperty("Scenery.Tour guide.announceTrackChange", "Always comment when current track changes", true));
         configProperties.add(new EnumProperty<CommentaryInterval>("Scenery.Tour guide.interval", "Commentary interval:", CommentaryInterval.TWO));
-        configProperties.add(new BooleanProperty("Scenery.Tour guide.mixChitChat", "Mix general chit-chat with trigger responses if available", true));
+        BooleanProperty mixChitChat = new BooleanProperty("Scenery.Tour guide.mixChitChat", "Mix general chit-chat with trigger responses if available", true);
+        mixChitChat.addFormFieldChangeListener(new PropertyFormFieldChangeListener() {
+            @Override
+            public void valueChanged(PropertyFormFieldValueChangedEvent event) {
+                ComboField combo = (ComboField)event.getFormPanel().getFormField("Scenery.Tour guide.chattiness");
+                if (combo != null) {
+                    combo.setVisible(((CheckBoxField)event.getFormField()).isChecked());
+                }
+            }
+        });
+        configProperties.add(mixChitChat);
+        configProperties.add(new EnumProperty<Chattiness>("Scenery.Tour guide.chattiness", "Chatty level:", Chattiness.MEDIUM));
         configProperties.add(new BooleanProperty("Scenery.Tour guide.allowStyleOverride", "Allow tour guides to override default style settings", true));
         configProperties.add(new FontProperty("Scenery.Tour guide.defaultFont", "Default text style:", new Font(Font.SANS_SERIF, Font.PLAIN, 18), Color.GREEN, Color.BLACK));
         configProperties.add(new DecimalProperty("Scenery.Tour guide.transparency", "Text opacity:", 1.0, 0.1, 1.0, 0.05));
