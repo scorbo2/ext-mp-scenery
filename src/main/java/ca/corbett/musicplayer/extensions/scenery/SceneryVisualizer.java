@@ -8,6 +8,7 @@ import ca.corbett.extras.properties.BooleanProperty;
 import ca.corbett.extras.properties.DecimalProperty;
 import ca.corbett.extras.properties.EnumProperty;
 import ca.corbett.extras.properties.FontProperty;
+import ca.corbett.extras.properties.ListProperty;
 import ca.corbett.extras.properties.PropertiesManager;
 import ca.corbett.musicplayer.AppConfig;
 import ca.corbett.musicplayer.actions.ReloadUIAction;
@@ -20,6 +21,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
@@ -56,6 +58,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
     private SceneryExtension.Chattiness chattiness;
 
     private SceneryExtension.SceneryInterval sceneryInterval;
+    private List<String> preferredSceneryTags;
 
     private int displayWidth;
     private int displayHeight;
@@ -104,7 +107,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         reloadUI();
 
         // Background:
-        scenery = SceneryExtension.sceneryLoader.loadRandom();
+        scenery = SceneryExtension.sceneryLoader.loadRandom(preferredSceneryTags);
         imageScroller = new ImageScroller(scenery.getRandomImage(), width, height);
 
         // Text window:
@@ -152,7 +155,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         // Change the scenery if the track has changed and we are in SceneryInterval.TRACK:
         if (sceneryInterval == SceneryExtension.SceneryInterval.TRACK && ! isTrackAnnounced && ! isFirstFrame && trackInfo != null) {
-            scenery = SceneryExtension.sceneryLoader.loadRandom();
+            scenery = SceneryExtension.sceneryLoader.loadRandom(preferredSceneryTags);
             imageScroller.setImage(scenery.getRandomImage());
             lastSceneryChangeTime = System.currentTimeMillis();
         }
@@ -218,7 +221,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         if (sceneryInterval != SceneryExtension.SceneryInterval.TRACK &&
             timeSinceLastSceneryChange > sceneryInterval.getIntervalMs()) {
             // TODO a transition might be nice instead of just a hard cut to the new one...
-            scenery = SceneryExtension.sceneryLoader.loadRandom();
+            scenery = SceneryExtension.sceneryLoader.loadRandom(preferredSceneryTags);
             imageScroller.setImage(scenery.getRandomImage());
             lastSceneryChangeTime = System.currentTimeMillis();
         }
@@ -257,6 +260,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
         AbstractProperty rotateCompanionsProp = propsManager.getProperty("Scenery.Tour guide.rotate");
         AbstractProperty chattinessProp = propsManager.getProperty("Scenery.Tour guide.chattiness");
+        AbstractProperty sceneryTagsProp = propsManager.getProperty("Scenery.Scenery.preferredTags");
 
         if (! (chooserProp instanceof CompanionChooserProperty) ||
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
@@ -267,7 +271,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
             ! (transparencyProp instanceof DecimalProperty) ||
             ! (sceneryIntervalProp instanceof EnumProperty) ||
             ! (rotateCompanionsProp instanceof BooleanProperty) ||
-            ! (chattinessProp instanceof EnumProperty)) {
+            ! (chattinessProp instanceof EnumProperty) ||
+            ! (sceneryTagsProp instanceof ListProperty)) {
             log.severe("SceneryVisualizer: our properties are of the wrong type!");
             return;
         }
@@ -291,6 +296,8 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         sceneryInterval = ((EnumProperty<SceneryExtension.SceneryInterval>)sceneryIntervalProp).getSelectedItem();
         //noinspection unchecked
         chattiness = ((EnumProperty<SceneryExtension.Chattiness>)chattinessProp).getSelectedItem();
+        //noinspection unchecked
+        preferredSceneryTags = parsePreferredTags(((ListProperty<String>)sceneryTagsProp).getItems());
     }
 
     private void setCompanion(Companion companion) {
@@ -337,5 +344,26 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         textRenderer.setText(comment);
         textAnimator.setDestination(textX, displayHeight - 450);
+    }
+
+    /**
+     * Stupid workaround required until
+     * <a href="https://github.com/scorbo2/swing-extras/issues/70">swing-extras issue 70</a> is fixed.
+     * Manually peek() the property value, parse the list, and use it to index into the items list.
+     */
+    private List<String> parsePreferredTags(List<String> allItems) {
+        List<String> tags = new ArrayList<>();
+        String rawValue = AppConfig.peek("Scenery.Scenery.preferredTags");
+        if (rawValue == null || rawValue.isBlank()) {
+            return tags;
+        }
+
+        int[] selectedIndexes = Arrays.stream(rawValue.split(","))
+                                              .mapToInt(s -> Integer.parseInt(s.trim()))
+                                              .toArray();
+        for (int i : selectedIndexes) {
+            tags.add(allItems.get(i));
+        }
+        return tags;
     }
 }

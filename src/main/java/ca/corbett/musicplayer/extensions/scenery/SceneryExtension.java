@@ -181,6 +181,11 @@ public class SceneryExtension extends MusicPlayerExtension {
             if (configProperties.get(i).getFullyQualifiedName().equals("Scenery.Tour guide.chooser")) {
                 configProperties.set(i, new CompanionChooserProperty("Scenery.Tour guide.chooser","Choose your tour guide:", companionLoader.getAll(), 0));
             }
+            else if (configProperties.get(i).getFullyQualifiedName().equals("Scenery.Scenery.preferredTags")) {
+                configProperties.set(i, new ListProperty<String>("Scenery.Scenery.preferredTags", "Preferred tags:")
+                                         .setItems(sceneryLoader.getUniqueTags()));
+
+            }
         }
     }
 
@@ -221,8 +226,7 @@ public class SceneryExtension extends MusicPlayerExtension {
         configProperties.add(new EnumProperty<SceneryInterval>("Scenery.Scenery.interval", "Change interval:", SceneryInterval.FIVE));
         configProperties.add(new EnumProperty<ImageScroller.ScrollSpeed>("Scenery.Scenery.scrollSpeed", "Scroll speed:", ImageScroller.ScrollSpeed.MEDIUM));
         configProperties.add(new DirectoryProperty("Scenery.Scenery.externalDir", "Custom scenery:", true));
-        configProperties.add(new ListProperty<String>("Scenery.Scenery.preferredTags", "Preferred tags:")
-                                 .setItems(List.of("Fantasy", "Forest", "Mountains", "Ruins"))); // TODO do this more smarterer
+        configProperties.add(new LabelProperty("Scenery.Scenery.preferredTags", "placeholder")); // we can't create this one yet... will update at end of constructor
         return configProperties;
     }
 
