@@ -78,7 +78,7 @@ text styling properties from configuration will be used if not specified. We als
 - triggers: These allow you to program the tour guide to respond to the current track, current artist, or current scenery!
   - track: if specified, it's a single string (case insensitive) to name a specific track (for example, "hey jude")
   - artist: if specified, it's a single string (case insensitive) to name a specific artist (for example, "the beatles")
-  - scenery: if specified, it's an array of string tags which all must be present in the current scenery (for example, [ "mountains", "winter" ] would only trigger if the scenery image contains both "mountains" AND "forest").
+  - scenery: if specified, it's an array of string tags which all must be present in the current scenery (for example, [ "mountains", "winter" ] would only trigger if the scenery image contains both "mountains" AND "winter").
   - responses: this is an array of possible responses for the trigger. One will be selected at random whenever the trigger hits. Put as many as you can, so they don't get repetitive!
   - (Triggers can combine multiple things to be very specific, but if you make it TOO specific, it won't be triggered very often!)
 - idleChatter: this is the "general chit chat" option which will be used if none of the tour guides triggers match, or if "mix general chitchat" option is selected in config.
