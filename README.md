@@ -96,14 +96,14 @@ mvn package
 Now you can copy the extension jar to wherever you keep your musicplayer extensions:
 
 ```shell
-cp target/ext-mp-scenery-2.8.0.jar ~/.MusicPlayer/extensions
+cp target/ext-mp-scenery-2.9.0.jar ~/.MusicPlayer/extensions
 ```
 
 Now restart musicplayer and you should see the extension is loaded automatically! Enjoy the scenery!
 
 ## Requirements
 
-MusicPlayer 2.8 or higher.
+MusicPlayer 2.9 or higher.
 
 ## License
 

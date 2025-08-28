@@ -444,4 +444,9 @@ public class Companion {
     public List<String> getAllIdleChatter() {
         return new ArrayList<>(idleChatter);
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

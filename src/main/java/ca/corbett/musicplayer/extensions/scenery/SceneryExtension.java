@@ -209,9 +209,9 @@ public class SceneryExtension extends MusicPlayerExtension {
         mixChitChat.addFormFieldChangeListener(new PropertyFormFieldChangeListener() {
             @Override
             public void valueChanged(PropertyFormFieldValueChangedEvent event) {
-                ComboField combo = (ComboField)event.getFormPanel().getFormField("Scenery.Tour guide.chattiness");
+                ComboField combo = (ComboField)event.formPanel().getFormField("Scenery.Tour guide.chattiness");
                 if (combo != null) {
-                    combo.setVisible(((CheckBoxField)event.getFormField()).isChecked());
+                    combo.setVisible(((CheckBoxField)event.formField()).isChecked());
                 }
             }
         });
