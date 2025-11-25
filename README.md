@@ -85,6 +85,13 @@ text styling properties from configuration will be used if not specified. We als
 
 ## How do I get it?
 
+**NEW!** Starting in MusicPlayer 3.0, you no longer have to build and install extension jars manually!
+The new and improved extension manager dialog allows you to find, download, and install them automatically!
+
+TODO add a screenshot of this
+
+### Alternatively - build it yourself
+
 Clone the repo and build the extension jar with maven:
 
 ```shell
@@ -103,7 +110,7 @@ Now restart musicplayer and you should see the extension is loaded automatically
 
 ## Requirements
 
-MusicPlayer 2.9 or higher.
+MusicPlayer 3.0 or higher.
 
 ## License
 
