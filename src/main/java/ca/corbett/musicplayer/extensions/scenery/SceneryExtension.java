@@ -121,12 +121,20 @@ public class SceneryExtension extends MusicPlayerExtension {
     }
 
     public SceneryExtension() {
-        try {
-            // NOTE! We can ONLY load resources from our own jar file in the constructor!
-            // I described this here: https://github.com/scorbo2/swing-extras/issues/34#issuecomment-2882106784
-            // I have yet to find and fix the problem. So, all of our built-in resources
-            // have to be loaded here in the constructor, as we will be unable to load them later.
+        extInfo = AppExtensionInfo.fromExtensionJar(getClass(), "/ca/corbett/musicplayer/extensions/scenery/extInfo.json");
+        if (extInfo == null) {
+            throw new RuntimeException("SceneryExtension: can't parse extInfo.json from jar resources!");
+        }
+    }
 
+    @Override
+    public AppExtensionInfo getInfo() {
+        return extInfo;
+    }
+
+    @Override
+    public void loadJarResources() {
+        try {
             // Built-in companions:
             builtInCompanions = new ArrayList<>();
             BufferedImage img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
@@ -149,12 +157,12 @@ public class SceneryExtension extends MusicPlayerExtension {
             img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Mountains.jpg"));
             builtInScenery.add(SceneryImage.load(SceneryExtension.class.getResourceAsStream((
-                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Mountains.json")), List.of(img)));
+                                                                                                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Mountains.json")), List.of(img)));
 
             img = ImageUtil.loadImage(SceneryExtension.class.getResourceAsStream(
                 "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Stonehenge.jpg"));
             builtInScenery.add(SceneryImage.load(SceneryExtension.class.getResourceAsStream((
-                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Stonehenge.json")), List.of(img)));
+                                                                                                "/ca/corbett/musicplayer/extensions/scenery/sample_scenery/Stonehenge.json")), List.of(img)));
 
             log.info("SceneryExtension: loaded " +
                          builtInCompanions.size() +
@@ -164,10 +172,6 @@ public class SceneryExtension extends MusicPlayerExtension {
         }
         catch (IOException ioe) {
             log.log(Level.SEVERE, "Can't load extension resources!", ioe);
-        }
-        extInfo = AppExtensionInfo.fromExtensionJar(getClass(), "/ca/corbett/musicplayer/extensions/scenery/extInfo.json");
-        if (extInfo == null) {
-            throw new RuntimeException("SceneryExtension: can't parse extInfo.json from jar resources!");
         }
 
         // Peek the values of our external load dirs so we can initialize properly:
@@ -183,19 +187,10 @@ public class SceneryExtension extends MusicPlayerExtension {
             }
             else if (configProperties.get(i).getFullyQualifiedName().equals("Scenery.Scenery.preferredTags")) {
                 configProperties.set(i, new ListProperty<String>("Scenery.Scenery.preferredTags", "Preferred tags:")
-                                         .setItems(sceneryLoader.getUniqueTags()));
+                    .setItems(sceneryLoader.getUniqueTags()));
 
             }
         }
-    }
-
-    @Override
-    public AppExtensionInfo getInfo() {
-        return extInfo;
-    }
-
-    @Override
-    public void loadJarResources() {
     }
 
     @Override
