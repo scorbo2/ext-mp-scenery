@@ -195,6 +195,10 @@ public class SceneryExtension extends MusicPlayerExtension {
     }
 
     @Override
+    public void loadJarResources() {
+    }
+
+    @Override
     protected List<AbstractProperty> createConfigProperties() {
         // Now we can build out our list of properties:
         List<AbstractProperty> configProperties = new ArrayList<>();
