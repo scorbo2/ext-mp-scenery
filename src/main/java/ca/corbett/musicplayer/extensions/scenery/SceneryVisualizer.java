@@ -20,8 +20,6 @@ import ca.corbett.musicplayer.ui.VisualizationWindow;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
@@ -249,18 +247,18 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
     @Override
     public void reloadUI() {
-        PropertiesManager propsManager = AppConfig.getInstance().getPropertiesManager();
-        AbstractProperty chooserProp = propsManager.getProperty("Scenery.Tour guide.chooser");
-        AbstractProperty announceTrackChangeProp = propsManager.getProperty("Scenery.Tour guide.announceTrackChange");
-        AbstractProperty commentaryIntervalProp = propsManager.getProperty("Scenery.Tour guide.interval");
-        AbstractProperty styleOverrideProp = propsManager.getProperty("Scenery.Tour guide.allowStyleOverride");
-        AbstractProperty mixChitChatProp = propsManager.getProperty("Scenery.Tour guide.mixChitChat");
-        AbstractProperty defaultStyleProp = propsManager.getProperty("Scenery.Tour guide.defaultFont");
-        AbstractProperty transparencyProp = propsManager.getProperty("Scenery.Tour guide.transparency");
-        AbstractProperty sceneryIntervalProp = propsManager.getProperty("Scenery.Scenery.interval");
-        AbstractProperty rotateCompanionsProp = propsManager.getProperty("Scenery.Tour guide.rotate");
-        AbstractProperty chattinessProp = propsManager.getProperty("Scenery.Tour guide.chattiness");
-        AbstractProperty sceneryTagsProp = propsManager.getProperty("Scenery.Scenery.preferredTags");
+        PropertiesManager manager = AppConfig.getInstance().getPropertiesManager();
+        AbstractProperty chooserProp = manager.getProperty(SceneryExtension.PROP_COMPANION);
+        AbstractProperty announceTrackChangeProp = manager.getProperty(SceneryExtension.PROP_ANNOUNCE_TRACK);
+        AbstractProperty commentaryIntervalProp = manager.getProperty(SceneryExtension.PROP_COMMENT_INTERVAL);
+        AbstractProperty styleOverrideProp = manager.getProperty(SceneryExtension.PROP_STYLE_OVERRIDE);
+        AbstractProperty mixChitChatProp = manager.getProperty(SceneryExtension.PROP_MIX_CHIT_CHAT);
+        AbstractProperty defaultStyleProp = manager.getProperty(SceneryExtension.PROP_DEFAULT_FONT);
+        AbstractProperty transparencyProp = manager.getProperty(SceneryExtension.PROP_TRANSPARENCY);
+        AbstractProperty sceneryIntervalProp = manager.getProperty(SceneryExtension.PROP_SCENERY_INTERVAL);
+        AbstractProperty rotateCompanionsProp = manager.getProperty(SceneryExtension.PROP_COMPANION_ROTATE);
+        AbstractProperty chattinessProp = manager.getProperty(SceneryExtension.PROP_CHATTINESS_LEVEL);
+        AbstractProperty sceneryTagsProp = manager.getProperty(SceneryExtension.PROP_SCENERY_TAGS);
 
         if (! (chooserProp instanceof CompanionChooserProperty) ||
             ! (announceTrackChangeProp instanceof BooleanProperty) ||
@@ -297,7 +295,7 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
         //noinspection unchecked
         chattiness = ((EnumProperty<SceneryExtension.Chattiness>)chattinessProp).getSelectedItem();
         //noinspection unchecked
-        preferredSceneryTags = parsePreferredTags(((ListProperty<String>)sceneryTagsProp).getItems());
+        preferredSceneryTags = ((ListProperty<String>)sceneryTagsProp).getSelectedItems();
     }
 
     private void setCompanion(Companion companion) {
@@ -344,26 +342,5 @@ public class SceneryVisualizer extends VisualizationManager.Visualizer implement
 
         textRenderer.setText(comment);
         textAnimator.setDestination(textX, displayHeight - 450);
-    }
-
-    /**
-     * Stupid workaround required until
-     * <a href="https://github.com/scorbo2/swing-extras/issues/70">swing-extras issue 70</a> is fixed.
-     * Manually peek() the property value, parse the list, and use it to index into the items list.
-     */
-    private List<String> parsePreferredTags(List<String> allItems) {
-        List<String> tags = new ArrayList<>();
-        String rawValue = AppConfig.peek("Scenery.Scenery.preferredTags");
-        if (rawValue == null || rawValue.isBlank()) {
-            return tags;
-        }
-
-        int[] selectedIndexes = Arrays.stream(rawValue.split(","))
-                                              .mapToInt(s -> Integer.parseInt(s.trim()))
-                                              .toArray();
-        for (int i : selectedIndexes) {
-            tags.add(allItems.get(i));
-        }
-        return tags;
     }
 }

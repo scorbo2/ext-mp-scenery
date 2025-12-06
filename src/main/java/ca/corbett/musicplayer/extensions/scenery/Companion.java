@@ -1,25 +1,20 @@
 package ca.corbett.musicplayer.extensions.scenery;
 
+import ca.corbett.extras.image.ImageUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
-import javax.imageio.ImageIO;
-
-import ca.corbett.extras.image.ImageUtil;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Represents a Companion and all of the associated configuration and images for it.
@@ -27,30 +22,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * track, a given artist, and/or a given background scenery image. Companions are defined
  * in json with the following example structure:
  * <BLOCKQUOTE><PRE>
-   {
-     "name": "MyCompanion",
-     "language": "en",
-     "triggers": [
-     {
-       "artist": "The Beatles",
-       "track": "Hey Jude",
-       "scenery": ["studio", "1960s"],
-       "responses": [
-         "What a classic song!",
-         "The Beatles were amazing!",
-         "Hey Jude never gets old."
-       ]
-     },
-     {
-       "scenery": ["forest"],
-       "responses": [
-         "I love the peaceful forest atmosphere.",
-         "The trees are so calming."
-       ]
-     }
-     ]
-   }
-  </PRE></BLOCKQUOTE>
+ * {
+ *   "name": "MyCompanion",
+ *   "language": "en",
+ *   "triggers": [
+ *   {
+ *     "artist": "The Beatles",
+ *     "track": "Hey Jude",
+ *     "scenery": ["studio", "1960s"],
+ *     "responses": [
+ *       "What a classic song!",
+ *       "The Beatles were amazing!",
+ *       "Hey Jude never gets old."
+ *     ]
+ *   },
+ *   {
+ *     "scenery": ["forest"],
+ *     "responses": [
+ *       "I love the peaceful forest atmosphere.",
+ *       "The trees are so calming."
+ *     ]
+ *   }
+ *   ]
+ * }
+ * </PRE></BLOCKQUOTE>
  * Companions can have one or more associated images, which are loaded from the same
  * directory as the json file and with the same base name. For example, Companion.json could
  * have matching image files Companion1.jpg and Companion2.png - either jpg or png format
@@ -62,10 +57,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * or scenery.
  * </p>
  * <p>
- *     <b>Defining a trigger</b> - all trigger parameters are optional, with the following
- *     restrictions: you must specify at least one non-empty response, and you have to
- *     specify at least ONE of Artist, Track, and SceneryTags. If you specify more than one,
- *     then ALL of what you have specified must match in order to be considered a match.
+ * <b>Defining a trigger</b> - all trigger parameters are optional, with the following
+ * restrictions: you must specify at least one non-empty response, and you have to
+ * specify at least ONE of Artist, Track, and SceneryTags. If you specify more than one,
+ * then ALL of what you have specified must match in order to be considered a match.
  * </p>
  */
 public class Companion {
@@ -152,7 +147,8 @@ public class Companion {
             throw new IOException("Failed to parse JSON resource!", e);
         }
 
-        BufferedImage scaledImage = ImageUtil.scaleImageToFitSquareBounds(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH*2);
+        BufferedImage scaledImage = ImageUtil.scaleImageToFitSquareBounds(image,
+                                                                          SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2);
         return loadCompanion(rootNode, List.of(scaledImage));
     }
 
@@ -194,8 +190,8 @@ public class Companion {
      * If multiple triggers match, one is selected randomly. If the selected trigger
      * has multiple responses, one is selected randomly from those.
      *
-     * @param artistName the artist name to match against (can be null)
-     * @param trackTitle the track title to match against (can be null)
+     * @param artistName  the artist name to match against (can be null)
+     * @param trackTitle  the track title to match against (can be null)
      * @param sceneryTags the scenery tags to match against (can be null)
      * @return a random response string, or null if no triggers match
      */
@@ -218,8 +214,8 @@ public class Companion {
      * If you just want one at random, use getResponse() instead.
      * This is mainly here for testing purposes.
      *
-     * @param artistName the artist name to match against (can be null)
-     * @param trackTitle the track title to match against (can be null)
+     * @param artistName  the artist name to match against (can be null)
+     * @param trackTitle  the track title to match against (can be null)
      * @param sceneryTags the scenery tags to match against (can be null)
      * @return a list of all possible responses (may be empty if no triggers match)
      */
@@ -322,8 +318,10 @@ public class Companion {
                 if (image == null) {
                     throw new IOException("Failed to load image file: " + imageFile.getPath());
                 }
-                images.add(ImageUtil.scaleImageToFitSquareBounds(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2));
-            } catch (Exception e) {
+                images.add(
+                    ImageUtil.scaleImageToFitSquareBounds(image, SceneryExtension.IMAGE_MAX_DIM - BORDER_WIDTH * 2));
+            }
+            catch (Exception e) {
                 throw new IOException("Error reading image file: " + imageFile.getPath(), e);
             }
         }
@@ -338,7 +336,7 @@ public class Companion {
             if (changeNode.isArray()) {
                 for (JsonNode node : changeNode) {
                     String msg = node.asText();
-                    if (msg != null && ! msg.isEmpty()) {
+                    if (msg != null && !msg.isEmpty()) {
                         messages.add(msg);
                     }
                 }
@@ -379,25 +377,49 @@ public class Companion {
     }
 
     private static Color parseRgbString(String rgbString) throws IOException {
-        if (rgbString == null || rgbString.length() != 8 || ! rgbString.startsWith("0x")) {
+        if (rgbString == null || rgbString.length() != 8 || !rgbString.startsWith("0x")) {
             throw new IOException("Color specifiers must be in the format 0xRRGGBB");
         }
         try {
             return new Color(Long.decode(rgbString).intValue());
         }
         catch (NumberFormatException nfe) {
-            throw new IOException("Invalid color value \""+rgbString+"\"");
+            throw new IOException("Invalid color value \"" + rgbString + "\"");
         }
     }
 
-    public String getName() { return name; }
-    public String getDescription() { return description; }
-    public String getLanguage() { return language; }
-    public Font getFont() { return font; }
-    public Color getTextColor() { return textColor; }
-    public Color getTextBgColor() { return textBgColor; }
-    public List<BufferedImage> getImages() { return new ArrayList<>(images); }
-    public int getTriggerCount() { return triggers.size(); }
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public Font getFont() {
+        return font;
+    }
+
+    public Color getTextColor() {
+        return textColor;
+    }
+
+    public Color getTextBgColor() {
+        return textBgColor;
+    }
+
+    public List<BufferedImage> getImages() {
+        return new ArrayList<>(images);
+    }
+
+    public int getTriggerCount() {
+        return triggers.size();
+    }
+
     public int getTotalResponseCount() {
         int total = trackChangeMessages.size();
         for (CompanionTrigger trigger : triggers) {
@@ -418,8 +440,9 @@ public class Companion {
                                                 BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setColor(borderColor);
-        g.fillRect(0,0,image.getWidth(),image.getHeight());
-        g.drawImage(companionImage, (image.getWidth() - companionImage.getWidth()) / 2, (image.getHeight() - companionImage.getHeight()) / 2, null);
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.drawImage(companionImage, (image.getWidth() - companionImage.getWidth()) / 2,
+                    (image.getHeight() - companionImage.getHeight()) / 2, null);
         g.dispose();
         return image;
     }
