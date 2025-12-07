@@ -1,6 +1,7 @@
 # ext-mp-scenery
 
-A visualizer extension for musicplayer to show gently scrolling background scenery with programmable tour guides who offer
+A visualizer extension for [MusicPlayer](https://github.com/scorbo2/musicplayer) to show gently scrolling 
+background scenery with programmable tour guides who offer
 customizable commentary on the current track, current artist, and/or current scenery. Out of the box, this extension
 provides a few built-in tour guides with minimal commentary, and a couple of example scenery images. But the idea
 is that you can provide your own scenery and build your own tour guide! You are only limited by your own imagination.
@@ -85,28 +86,35 @@ text styling properties from configuration will be used if not specified. We als
 
 ## How do I get it?
 
+### Option 1: automatic download and install
+
 **NEW!** Starting in MusicPlayer 3.0, you no longer have to build and install extension jars manually!
-The new and improved extension manager dialog allows you to find, download, and install them automatically!
+The new and improved extension manager dialog allows you to find, download, and install them automatically:
 
-TODO add a screenshot of this
+![Extension download](extension_download.jpg "Extension download")
 
-### Alternatively - build it yourself
+Go to the "available" tab and pick "Scenery" from the list on the left. Then hit "install" in the top right.
+The application will prompt you to restart. If you want to uninstall the extension later, go back to the
+extension manager dialog, pick "Scenery" from the "Installed" tab, and hit the "uninstall" button.
 
-Clone the repo and build the extension jar with maven:
+### Option 2: manual download and install
+
+You can download the extension manually: [ext-mp-stats-tracker-3.0.0](http://www.corbett.ca/apps/MusicPlayer/ext-mp-stats-tracker-3.0.0)
+
+Save the jar to your ~/.MusicPlayer/extensions directory and restart the application.
+
+### Option 3: build the extension from source
+
+You can clone this repo and build the extension jar with maven (Java 17 or higher required):
 
 ```shell
 https://github.com/scorbo2/ext-mp-scenery.git
 cd ext-mp-scenery
 mvn package
+
+# Copy the result to the extensions directory:
+cp target/ext-mp-scenery-3.0.0.jar ~/.MusicPlayer/extensions
 ```
-
-Now you can copy the extension jar to wherever you keep your musicplayer extensions:
-
-```shell
-cp target/ext-mp-scenery-2.9.0.jar ~/.MusicPlayer/extensions
-```
-
-Now restart musicplayer and you should see the extension is loaded automatically! Enjoy the scenery!
 
 ## Requirements
 
