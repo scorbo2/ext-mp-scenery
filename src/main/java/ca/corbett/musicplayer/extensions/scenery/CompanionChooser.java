@@ -2,7 +2,6 @@ package ca.corbett.musicplayer.extensions.scenery;
 
 import ca.corbett.extras.image.ImagePanel;
 import ca.corbett.extras.image.ImagePanelConfig;
-import ca.corbett.extras.image.LogoFormField;
 import ca.corbett.forms.Alignment;
 import ca.corbett.forms.FormPanel;
 import ca.corbett.forms.fields.ComboField;
@@ -10,7 +9,6 @@ import ca.corbett.forms.fields.FormField;
 import ca.corbett.forms.fields.PanelField;
 import ca.corbett.forms.fields.ValueChangedListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
