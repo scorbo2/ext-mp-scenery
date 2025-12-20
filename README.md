@@ -99,7 +99,7 @@ extension manager dialog, pick "Scenery" from the "Installed" tab, and hit the "
 
 ### Option 2: manual download and install
 
-You can download the extension manually: [ext-mp-stats-tracker-3.1.0](http://www.corbett.ca/apps/MusicPlayer/extensions/3.1/ext-mp-stats-tracker-3.1.0)
+You can download the extension manually: [ext-mp-scenery-3.1.0](http://www.corbett.ca/apps/MusicPlayer/extensions/3.1/ext-mp-scenery-3.1.0.jar)
 
 Save the jar to your ~/.MusicPlayer/extensions directory and restart the application.
 
