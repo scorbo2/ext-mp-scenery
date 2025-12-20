@@ -110,7 +110,7 @@ You can clone this repo and build the extension jar with maven (Java 17 or highe
 ```shell
 https://github.com/scorbo2/ext-mp-scenery.git
 cd ext-mp-scenery
-mvn package
+mvn package # NOTE! You must have MusicPlayer-3.1 in your local maven repository for this to work!
 
 # Copy the result to the extensions directory:
 cp target/ext-mp-scenery-3.1.0.jar ~/.MusicPlayer/extensions
