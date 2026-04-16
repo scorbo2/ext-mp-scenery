@@ -99,7 +99,7 @@ extension manager dialog, pick "Scenery" from the "Installed" tab, and hit the "
 
 ### Option 2: manual download and install
 
-You can download the extension manually: [ext-mp-scenery-3.1.0](http://www.corbett.ca/apps/MusicPlayer/extensions/3.1/ext-mp-scenery-3.1.0.jar)
+You can download the extension manually: [ext-mp-scenery-4.0.0](http://www.corbett.ca/apps/MusicPlayer/extensions/4.0/ext-mp-scenery-4.0.0.jar)
 
 Save the jar to your ~/.MusicPlayer/extensions directory and restart the application.
 
@@ -110,15 +110,15 @@ You can clone this repo and build the extension jar with maven (Java 17 or highe
 ```shell
 https://github.com/scorbo2/ext-mp-scenery.git
 cd ext-mp-scenery
-mvn package # NOTE! You must have MusicPlayer-3.1 in your local maven repository for this to work!
+mvn package # NOTE! You must have MusicPlayer-4.0 in your local maven repository for this to work!
 
 # Copy the result to the extensions directory:
-cp target/ext-mp-scenery-3.1.0.jar ~/.MusicPlayer/extensions
+cp target/ext-mp-scenery-4.0.0.jar ~/.MusicPlayer/extensions
 ```
 
 ## Requirements
 
-MusicPlayer 3.1 or higher.
+Compatible with any `4.x` release of MusicPlayer.
 
 ## License
 
